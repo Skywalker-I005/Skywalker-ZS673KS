@@ -25,6 +25,7 @@
 #include <linux/device.h>
 #include <linux/hid.h>
 #include <linux/input.h>
+#include <linux/leds.h>
 #include <linux/module.h>
 #include <linux/spinlock.h>
 
@@ -102,6 +103,11 @@ static const u16 JC_MAX_STICK_MAG		= 32767;
 static const u16 JC_STICK_FUZZ			= 250;
 static const u16 JC_STICK_FLAT			= 500;
 
+/* Hat values for pro controller's d-pad */
+static const u16 JC_MAX_DPAD_MAG		= 1;
+static const u16 JC_DPAD_FUZZ			/*= 0*/;
+static const u16 JC_DPAD_FLAT			/*= 0*/;
+
 /* States for controller state machine */
 enum joycon_ctlr_state {
 	JOYCON_CTLR_STATE_INIT,
@@ -152,13 +158,13 @@ struct joycon_subcmd_request {
 	u8 packet_num; /* incremented every send */
 	u8 rumble_data[8];
 	u8 subcmd_id;
-	u8 data[0]; /* length depends on the subcommand */
+	u8 data[]; /* length depends on the subcommand */
 } __packed;
 
 struct joycon_subcmd_reply {
 	u8 ack; /* MSB 1 for ACK, 0 for NACK */
 	u8 id; /* id of requested subcmd */
-	u8 data[0]; /* will be at most 35 bytes */
+	u8 data[]; /* will be at most 35 bytes */
 } __packed;
 
 struct joycon_input_report {
@@ -179,10 +185,19 @@ struct joycon_input_report {
 
 #define JC_MAX_RESP_SIZE	(sizeof(struct joycon_input_report) + 35)
 
+static const char * const joycon_player_led_names[] = {
+	LED_FUNCTION_PLAYER1,
+	LED_FUNCTION_PLAYER2,
+	LED_FUNCTION_PLAYER3,
+	LED_FUNCTION_PLAYER4,
+};
+#define JC_NUM_LEDS		ARRAY_SIZE(joycon_player_led_names)
+
 /* Each physical controller is associated with a joycon_ctlr struct */
 struct joycon_ctlr {
 	struct hid_device *hdev;
 	struct input_dev *input;
+	struct led_classdev leds[JC_NUM_LEDS];
 	enum joycon_ctlr_state ctlr_state;
 
 	/* The following members are used for synchronous sends/receives */
@@ -456,18 +471,41 @@ static void joycon_parse_report(struct joycon_ctlr *ctlr,
 		/* report buttons */
 		input_report_key(dev, BTN_TL, btns & JC_BTN_L);
 		input_report_key(dev, BTN_TL2, btns & JC_BTN_ZL);
+		input_report_key(dev, BTN_SELECT, btns & JC_BTN_MINUS);
+		input_report_key(dev, BTN_THUMBL, btns & JC_BTN_LSTICK);
+		input_report_key(dev, BTN_Z, btns & JC_BTN_CAP);
+
 		if (id != USB_DEVICE_ID_NINTENDO_PROCON) {
 			/* Report the S buttons as the non-existent triggers */
 			input_report_key(dev, BTN_TR, btns & JC_BTN_SL_L);
 			input_report_key(dev, BTN_TR2, btns & JC_BTN_SR_L);
+
+			/* Report d-pad as digital buttons for the joy-cons */
+			input_report_key(dev, BTN_DPAD_DOWN,
+					 btns & JC_BTN_DOWN);
+			input_report_key(dev, BTN_DPAD_UP, btns & JC_BTN_UP);
+			input_report_key(dev, BTN_DPAD_RIGHT,
+					 btns & JC_BTN_RIGHT);
+			input_report_key(dev, BTN_DPAD_LEFT,
+					 btns & JC_BTN_LEFT);
+		} else {
+			int hatx = 0;
+			int haty = 0;
+
+			/* d-pad x */
+			if (btns & JC_BTN_LEFT)
+				hatx = -1;
+			else if (btns & JC_BTN_RIGHT)
+				hatx = 1;
+			input_report_abs(dev, ABS_HAT0X, hatx);
+
+			/* d-pad y */
+			if (btns & JC_BTN_UP)
+				haty = -1;
+			else if (btns & JC_BTN_DOWN)
+				haty = 1;
+			input_report_abs(dev, ABS_HAT0Y, haty);
 		}
-		input_report_key(dev, BTN_SELECT, btns & JC_BTN_MINUS);
-		input_report_key(dev, BTN_THUMBL, btns & JC_BTN_LSTICK);
-		input_report_key(dev, BTN_Z, btns & JC_BTN_CAP);
-		input_report_key(dev, BTN_DPAD_DOWN, btns & JC_BTN_DOWN);
-		input_report_key(dev, BTN_DPAD_UP, btns & JC_BTN_UP);
-		input_report_key(dev, BTN_DPAD_RIGHT, btns & JC_BTN_RIGHT);
-		input_report_key(dev, BTN_DPAD_LEFT, btns & JC_BTN_LEFT);
 	}
 	if (id != USB_DEVICE_ID_NINTENDO_JOYCONL) {
 		u16 raw_x;
@@ -509,7 +547,6 @@ static void joycon_parse_report(struct joycon_ctlr *ctlr,
 
 static const unsigned int joycon_button_inputs_l[] = {
 	BTN_SELECT, BTN_Z, BTN_THUMBL,
-	BTN_DPAD_UP, BTN_DPAD_DOWN, BTN_DPAD_LEFT, BTN_DPAD_RIGHT,
 	BTN_TL, BTN_TL2,
 	0 /* 0 signals end of array */
 };
@@ -521,11 +558,14 @@ static const unsigned int joycon_button_inputs_r[] = {
 	0 /* 0 signals end of array */
 };
 
-static DEFINE_MUTEX(joycon_input_num_mutex);
+/* We report joy-con d-pad inputs as buttons and pro controller as a hat. */
+static const unsigned int joycon_dpad_inputs_jc[] = {
+	BTN_DPAD_UP, BTN_DPAD_DOWN, BTN_DPAD_LEFT, BTN_DPAD_RIGHT,
+};
+
 static int joycon_input_create(struct joycon_ctlr *ctlr)
 {
 	struct hid_device *hdev;
-	static int input_num = 1;
 	const char *name;
 	int ret;
 	int i;
@@ -558,7 +598,7 @@ static int joycon_input_create(struct joycon_ctlr *ctlr)
 	input_set_drvdata(ctlr->input, ctlr);
 
 
-	/* set up sticks */
+	/* set up sticks and buttons */
 	if (hdev->product != USB_DEVICE_ID_NINTENDO_JOYCONR) {
 		input_set_abs_params(ctlr->input, ABS_X,
 				     -JC_MAX_STICK_MAG, JC_MAX_STICK_MAG,
@@ -566,6 +606,24 @@ static int joycon_input_create(struct joycon_ctlr *ctlr)
 		input_set_abs_params(ctlr->input, ABS_Y,
 				     -JC_MAX_STICK_MAG, JC_MAX_STICK_MAG,
 				     JC_STICK_FUZZ, JC_STICK_FLAT);
+
+		for (i = 0; joycon_button_inputs_l[i] > 0; i++)
+			input_set_capability(ctlr->input, EV_KEY,
+					     joycon_button_inputs_l[i]);
+
+		/* configure d-pad differently for joy-con vs pro controller */
+		if (hdev->product != USB_DEVICE_ID_NINTENDO_PROCON) {
+			for (i = 0; joycon_dpad_inputs_jc[i] > 0; i++)
+				input_set_capability(ctlr->input, EV_KEY,
+						     joycon_dpad_inputs_jc[i]);
+		} else {
+			input_set_abs_params(ctlr->input, ABS_HAT0X,
+					     -JC_MAX_DPAD_MAG, JC_MAX_DPAD_MAG,
+					     JC_DPAD_FUZZ, JC_DPAD_FLAT);
+			input_set_abs_params(ctlr->input, ABS_HAT0Y,
+					     -JC_MAX_DPAD_MAG, JC_MAX_DPAD_MAG,
+					     JC_DPAD_FUZZ, JC_DPAD_FLAT);
+		}
 	}
 	if (hdev->product != USB_DEVICE_ID_NINTENDO_JOYCONL) {
 		input_set_abs_params(ctlr->input, ABS_RX,
@@ -574,23 +632,77 @@ static int joycon_input_create(struct joycon_ctlr *ctlr)
 		input_set_abs_params(ctlr->input, ABS_RY,
 				     -JC_MAX_STICK_MAG, JC_MAX_STICK_MAG,
 				     JC_STICK_FUZZ, JC_STICK_FLAT);
-	}
 
-	/* set up buttons */
-	if (hdev->product != USB_DEVICE_ID_NINTENDO_JOYCONR) {
-		for (i = 0; joycon_button_inputs_l[i] > 0; i++)
-			input_set_capability(ctlr->input, EV_KEY,
-					     joycon_button_inputs_l[i]);
-	}
-	if (hdev->product != USB_DEVICE_ID_NINTENDO_JOYCONL) {
 		for (i = 0; joycon_button_inputs_r[i] > 0; i++)
 			input_set_capability(ctlr->input, EV_KEY,
 					     joycon_button_inputs_r[i]);
 	}
 
+	/* Let's report joy-con S triggers separately */
+	if (hdev->product == USB_DEVICE_ID_NINTENDO_JOYCONL) {
+		input_set_capability(ctlr->input, EV_KEY, BTN_TR);
+		input_set_capability(ctlr->input, EV_KEY, BTN_TR2);
+	} else if (hdev->product == USB_DEVICE_ID_NINTENDO_JOYCONR) {
+		input_set_capability(ctlr->input, EV_KEY, BTN_TL);
+		input_set_capability(ctlr->input, EV_KEY, BTN_TL2);
+	}
+
 	ret = input_register_device(ctlr->input);
 	if (ret)
 		return ret;
+
+	return 0;
+}
+
+static int joycon_player_led_brightness_set(struct led_classdev *led,
+					    enum led_brightness brightness)
+{
+	struct device *dev = led->dev->parent;
+	struct hid_device *hdev = to_hid_device(dev);
+	struct joycon_ctlr *ctlr;
+	int val = 0;
+	int i;
+	int ret;
+	int num;
+
+	ctlr = hid_get_drvdata(hdev);
+	if (!ctlr) {
+		hid_err(hdev, "No controller data\n");
+		return -ENODEV;
+	}
+
+	/* determine which player led this is */
+	for (num = 0; num < JC_NUM_LEDS; num++) {
+		if (&ctlr->leds[num] == led)
+			break;
+	}
+	if (num >= JC_NUM_LEDS)
+		return -EINVAL;
+
+	mutex_lock(&ctlr->output_mutex);
+	for (i = 0; i < JC_NUM_LEDS; i++) {
+		if (i == num)
+			val |= brightness << i;
+		else
+			val |= ctlr->leds[i].brightness << i;
+	}
+	ret = joycon_set_player_leds(ctlr, 0, val);
+	mutex_unlock(&ctlr->output_mutex);
+
+	return ret;
+}
+
+static DEFINE_MUTEX(joycon_input_num_mutex);
+static int joycon_player_leds_create(struct joycon_ctlr *ctlr)
+{
+	struct hid_device *hdev = ctlr->hdev;
+	struct device *dev = &hdev->dev;
+	const char *d_name = dev_name(dev);
+	struct led_classdev *led;
+	char *name;
+	int ret = 0;
+	int i;
+	static int input_num = 1;
 
 	/* Set the default controller player leds based on controller number */
 	mutex_lock(&joycon_input_num_mutex);
@@ -599,6 +711,31 @@ static int joycon_input_create(struct joycon_ctlr *ctlr)
 	if (ret)
 		hid_warn(ctlr->hdev, "Failed to set leds; ret=%d\n", ret);
 	mutex_unlock(&ctlr->output_mutex);
+
+	/* configure the player LEDs */
+	for (i = 0; i < JC_NUM_LEDS; i++) {
+		name = devm_kasprintf(dev, GFP_KERNEL, "%s:%s:%s",
+				      d_name,
+				      "green",
+				      joycon_player_led_names[i]);
+		if (!name)
+			return -ENOMEM;
+
+		led = &ctlr->leds[i];
+		led->name = name;
+		led->brightness = ((i + 1) <= input_num) ? 1 : 0;
+		led->max_brightness = 1;
+		led->brightness_set_blocking =
+					joycon_player_led_brightness_set;
+		led->flags = LED_CORE_SUSPENDRESUME | LED_HW_PLUGGABLE;
+
+		ret = devm_led_classdev_register(&hdev->dev, led);
+		if (ret) {
+			hid_err(hdev, "Failed registering %s LED\n", led->name);
+			break;
+		}
+	}
+
 	if (++input_num > 4)
 		input_num = 1;
 	mutex_unlock(&joycon_input_num_mutex);
@@ -610,8 +747,6 @@ static int joycon_input_create(struct joycon_ctlr *ctlr)
 static int joycon_ctlr_read_handler(struct joycon_ctlr *ctlr, u8 *data,
 							      int size)
 {
-	int ret = 0;
-
 	if (data[0] == JC_INPUT_SUBCMD_REPLY || data[0] == JC_INPUT_IMU_DATA ||
 	    data[0] == JC_INPUT_MCU_DATA) {
 		if (size >= 12) /* make sure it contains the input report */
@@ -619,7 +754,7 @@ static int joycon_ctlr_read_handler(struct joycon_ctlr *ctlr, u8 *data,
 					    (struct joycon_input_report *)data);
 	}
 
-	return ret;
+	return 0;
 }
 
 static int joycon_ctlr_handle_event(struct joycon_ctlr *ctlr, u8 *data,
@@ -763,6 +898,13 @@ static int nintendo_hid_probe(struct hid_device *hdev,
 	}
 
 	mutex_unlock(&ctlr->output_mutex);
+
+	/* Initialize the leds */
+	ret = joycon_player_leds_create(ctlr);
+	if (ret) {
+		hid_err(hdev, "Failed to create leds; ret=%d\n", ret);
+		goto err_close;
+	}
 
 	ret = joycon_input_create(ctlr);
 	if (ret) {
