@@ -170,7 +170,6 @@ static void timeline_fence_release(struct dma_fence *fence)
 	unsigned long flags;
 
 	spin_lock_irqsave(&timeline->fence_lock, flags);
-	spin_lock(&timeline->fence_lock);
 
 	/* If the fence is still on the active list, remove it */
 	list_for_each_entry_safe(cur, temp, &timeline->fences, node) {
@@ -180,7 +179,6 @@ static void timeline_fence_release(struct dma_fence *fence)
 		list_del_init(&f->node);
 		break;
 	}
-	spin_unlock(&timeline->fence_lock);
 	spin_unlock_irqrestore(&timeline->fence_lock, flags);
 	trace_kgsl_timeline_fence_release(f->timeline->id, fence->seqno);
 
@@ -548,31 +546,19 @@ long kgsl_ioctl_timeline_destroy(struct kgsl_device_private *dev_priv,
 
 	INIT_LIST_HEAD(&temp);
 
-    /* Copy any still pending fences to a temporary list */
-    spin_lock(&timeline->fence_lock);
-    list_replace_init(&timeline->fences, &temp);
-    spin_unlock(&timeline->fence_lock);
+	spin_lock(&timeline->fence_lock);
+	list_for_each_entry_safe(fence, tmp, &timeline->fences, node)
+		dma_fence_get(&fence->base);
+	list_replace_init(&timeline->fences, &temp);
+	spin_unlock(&timeline->fence_lock);
 
-    /*
-     * Set an error on each still pending fence and signal
-     * them to release any callbacks. Hold the refcount
-     * to avoid fence getting destroyed during signaling.
-     */
-    list_for_each_entry_safe(fence, tmp, &temp, node) {
-        dma_fence_get(&fence->base);
-        dma_fence_set_error(&fence->base, -ENOENT);
-        dma_fence_signal_locked(&fence->base);
-    }
+	spin_lock_irq(&timeline->lock);
+	list_for_each_entry_safe(fence, tmp, &temp, node) {
+		dma_fence_set_error(&fence->base, -ENOENT);
+		dma_fence_signal_locked(&fence->base);
+		dma_fence_put(&fence->base);
+	}
 	spin_unlock_irq(&timeline->lock);
-    
-    /*
-     * Put the fence refcount taken above outside lock
-     * to avoid spinlock recursion during fence release.
-     */
-    list_for_each_entry_safe(fence, tmp, &temp, node) {
-        list_del_init(&fence->node);
-        dma_fence_put(&fence->base);
-    }
 
 	kgsl_timeline_put(timeline);
 
