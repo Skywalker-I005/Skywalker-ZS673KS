@@ -123,6 +123,8 @@ export quiet Q KBUILD_VERBOSE
 # Do we want to change the working directory?
 ifeq ("$(origin O)", "command line")
   KBUILD_OUTPUT := $(O)
+else
+  KBUILD_OUTPUT := out
 endif
 
 ifneq ($(KBUILD_OUTPUT),)
