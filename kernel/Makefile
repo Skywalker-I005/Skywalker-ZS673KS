@@ -131,7 +131,7 @@ KCOV_INSTRUMENT_stackleak.o := n
 $(obj)/configs.o: $(obj)/config_data.gz
 
 targets += config_data.gz
-$(obj)/config_data.gz: arch/arm64/configs/stock_defconfig FORCE
+$(obj)/config_data.gz: arch/arm64/configs/vendor/ZS673KS-prod_defconfig FORCE
 	$(call if_changed,gzip)
 
 filechk_cat = cat $<
