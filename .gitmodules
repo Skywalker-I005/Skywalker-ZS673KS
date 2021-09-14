@@ -1,0 +1,3 @@
+[submodule "release"]
+	path = release
+	url = git@gitlab.com:twistedumbrella/AnyKernel3.git
