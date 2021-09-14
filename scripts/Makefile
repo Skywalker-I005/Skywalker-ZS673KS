@@ -10,6 +10,10 @@
 
 HOST_EXTRACFLAGS += -I$(srctree)/tools/include
 
+ifeq ($(shell uname),Darwin)
+HOST_EXTRACFLAGS += -I/usr/local/opt/openssl@1.1/include -L/usr/local/opt/openssl@1.1/lib
+endif
+
 CRYPTO_LIBS = $(shell pkg-config --libs libcrypto 2> /dev/null || echo -lcrypto)
 CRYPTO_CFLAGS = $(shell pkg-config --cflags libcrypto 2> /dev/null)
 
