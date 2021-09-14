@@ -363,7 +363,7 @@ include scripts/subarch.include
 # Alternatively CROSS_COMPILE can be set in the environment.
 # Default value for CROSS_COMPILE is not to prefix executables
 # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
-ARCH		?= $(SUBARCH)
+ARCH		:= arm64
 
 # Architecture as present in compile.h
 UTS_MACHINE 	:= $(ARCH)
@@ -458,7 +458,7 @@ LZMA		= lzma
 LZ4		= lz4c
 XZ		= xz
 
-ifndef DISABLE_WRAPPER
+ifdef ENABLE_WRAPPER
 # Use the wrapper for the compiler.  This wrapper scans for new
 # warnings and causes the build to stop upon encountering them
 CC		= $(srctree)/scripts/gcc-wrapper.py $(REAL_CC)
