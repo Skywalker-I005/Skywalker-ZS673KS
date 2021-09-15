@@ -139,6 +139,6 @@ if [ -f out/arch/arm64/boot/Image ]; then
     HASH=$(git rev-parse --short HEAD)
 	
 	cd release
-	zip -r9 "SAUS-ZS673KS-$HASH($VERSION).zip" * -x *.DS_Store .git* README.md
+	zip -r9 "SAUS-ZS673KS-$VERSION-$HASH.zip" * -x *.DS_Store .git* README.md
 	cd ../
 fi
