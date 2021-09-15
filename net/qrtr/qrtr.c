@@ -23,7 +23,8 @@
 #include "qrtr.h"
 
 #define QRTR_LOG_PAGE_CNT 4
-#if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT	
+#ifdef CONFIG_ASUS_POWER_DEBUG
+//#if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
 //[PM_debug+++]
 #define QRTR_INFO(ctx, x, ...)				\
 do { \

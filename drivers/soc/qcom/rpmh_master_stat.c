@@ -99,7 +99,7 @@ static void __iomem *rpmh_unit_base;
 
 static DEFINE_MUTEX(rpmh_stats_mutex);
 
-#if 0
+#ifdef CONFIG_ASUS_POWER_DEBUG
 //[PM_debug +++]
 void msm_rpmh_master_stats_print(void)
 {

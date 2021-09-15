@@ -4710,11 +4710,12 @@ static int haptics_remove(struct platform_device *pdev)
 
 	return 0;
 }
+#ifdef CONFIG_ASUS_POWER_DEBUG
 //[PM_debug+++]
-#if defined ASUS_ZS673KS_PROJECT
+// #if defined ASUS_ZS673KS_PROJECT
 extern bool bBTM_OTG_EN;
-#endif
 //[PM_debug---]
+#endif
 
 #ifdef CONFIG_PM_SLEEP
 static int haptics_suspend(struct device *dev)
@@ -4723,14 +4724,15 @@ static int haptics_suspend(struct device *dev)
 	struct haptics_play_info *play = &chip->play;
 	int rc;
 
+#ifdef CONFIG_ASUS_POWER_DEBUG
     //[PM_debug+++]
-#if defined ASUS_ZS673KS_PROJECT
+// #if defined ASUS_ZS673KS_PROJECT
     if(bBTM_OTG_EN){
         printk("%s:skip suspend!", __func__);
         return 0;
     }
-#endif
     //[PM_debug---]
+#endif
 	if (chip->cfg_revision == HAP_CFG_V1)
 		return 0;
 

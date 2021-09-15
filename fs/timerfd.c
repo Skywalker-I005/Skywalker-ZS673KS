@@ -28,6 +28,7 @@
 #include <linux/rcupdate.h>
 
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
 //[PM_debug+++]
 extern int alarm_debug;
 //[PM_debug---]
@@ -246,7 +247,8 @@ static __poll_t timerfd_poll(struct file *file, poll_table *wait)
 	spin_lock_irqsave(&ctx->wqh.lock, flags);
 	if (ctx->ticks)
 		events |= EPOLLIN;
-#ifdef CONFIG_ASUS_POWER_DEBUG	
+#ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
     //[PM_debug+++]
     if(alarm_debug){
         //printk("[PM_debug]%s +++", __func__);
@@ -254,11 +256,11 @@ static __poll_t timerfd_poll(struct file *file, poll_table *wait)
             pr_info("[PM_debug]%s: comm:%s pid:%d exp:%llu type:%d\n", __func__,
             current->comm, current->pid,
             ktime_to_ms(ctx->t.alarm.node.expires),
-            ctx->t.alarm.type);    
+            ctx->t.alarm.type);
         //printk("[PM_debug]%s ---", __func__);
     }
     //[PM_debug---]
- #endif 
+#endif
 	spin_unlock_irqrestore(&ctx->wqh.lock, flags);
 
 	return events;
@@ -461,7 +463,7 @@ SYSCALL_DEFINE2(timerfd_create, int, clockid, int, flags)
 	return ufd;
 }
 
-static int do_timerfd_settime(int ufd, int flags, 
+static int do_timerfd_settime(int ufd, int flags,
 		const struct itimerspec64 *new,
 		struct itimerspec64 *old)
 {

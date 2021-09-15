@@ -12,7 +12,6 @@
 #define pr_fmt(fmt) "PM: " fmt
 //[PM_debug ---]
 #endif
-
 #include <linux/device.h>
 #include <linux/mutex.h>
 #include <linux/pm_wakeup.h>

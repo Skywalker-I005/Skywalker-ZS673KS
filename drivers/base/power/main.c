@@ -38,6 +38,7 @@
 #include "../base.h"
 #include "power.h"
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
 //[PM_debug +++]
 #include <linux/pm_debug.h>
 
@@ -461,16 +462,17 @@ static void pm_dev_err(struct device *dev, pm_message_t state, const char *info,
 			int error)
 {
 #ifdef CONFIG_ASUS_POWER_DEBUG
+//#if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
 	//[PM_debug +++]
     //irq debug
     pm_printk("Device %s failed to %s%s: error %d\n",
-	       dev_name(dev), pm_verb(state.event), info, error);
     //[PM_debug ---]
 #else
 	pr_err("Device %s failed to %s%s: error %d\n",
-	       dev_name(dev), pm_verb(state.event), info, error);
 #endif
+	       dev_name(dev), pm_verb(state.event), info, error);
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
 	//[PM_debug +++]
     //irq debug
 	ASUSEvtlog("PM: Device %s failed to %s%s: error %d\n",
@@ -500,11 +502,14 @@ static void dpm_show_time(ktime_t starttime, pm_message_t state, int error,
 		  usecs / USEC_PER_MSEC, usecs % USEC_PER_MSEC);
     //printk("[PM][Mark_debug_PM]%s:%s:%d:%s%s%s of devices %s after %ld.%03ld msecs\n",
           //__FILE__, __func__, __LINE__,
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
+    //[PM_debug +++]
     pm_printk("%s%s%s of devices %s after %ld.%03ld msecs\n",
 #endif
 		  info ?: "", info ? " " : "", pm_verb(state.event),
 		  error ? "aborted" : "complete",
 		  usecs / USEC_PER_MSEC, usecs % USEC_PER_MSEC);
+    //[PM_debug ---]
 }
 
 static int dpm_run_callback(pm_callback_t cb, struct device *dev,
@@ -1102,6 +1107,7 @@ void dpm_resume(pm_message_t state)
 {
 	struct device *dev;
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
    //[PM_debug+++]
     ktime_t device_starttime;
     ktime_t device_endtime;
@@ -1109,7 +1115,7 @@ void dpm_resume(pm_message_t state)
 	int usecs = 0;
     //[PM_debug---]
 #endif
-	ktime_t starttime = ktime_get();
+    ktime_t starttime = ktime_get();
 
 	trace_suspend_resume(TPS("dpm_resume"), state.event, true);
 	might_sleep();
@@ -1129,6 +1135,7 @@ void dpm_resume(pm_message_t state)
 
 			mutex_unlock(&dpm_list_mtx);
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
             //[PM_debug+++]
             device_starttime = ktime_get();
             //[PM_debug---]
@@ -1142,6 +1149,7 @@ void dpm_resume(pm_message_t state)
 				pm_dev_err(dev, state, "", error);
 			}
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
             //[PM_debug+++]
             device_endtime = ktime_get();
             usecs64 = ktime_to_ns(ktime_sub(device_endtime, device_starttime));
@@ -1933,12 +1941,13 @@ static int device_suspend(struct device *dev)
 int dpm_suspend(pm_message_t state)
 {
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
    //[PM_debug+++]
     ktime_t device_starttime;
     ktime_t device_endtime;
    	u64 usecs64 = 0;
 	int usecs = 0;
-    //[PM_debug---]	
+    //[PM_debug---]
 #endif
 	ktime_t starttime = ktime_get();
 	int error = 0;
@@ -1958,11 +1967,11 @@ int dpm_suspend(pm_message_t state)
 		get_device(dev);
 		mutex_unlock(&dpm_list_mtx);
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
         //[PM_debug+++]
         device_starttime = ktime_get();
         //[PM_debug---]
 #endif
-
 		error = device_suspend(dev);
 
 		mutex_lock(&dpm_list_mtx);
@@ -1973,6 +1982,7 @@ int dpm_suspend(pm_message_t state)
 			break;
 		}
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
         //[PM_debug+++]
         device_endtime = ktime_get();
         usecs64 = ktime_to_ns(ktime_sub(device_endtime, device_starttime));
@@ -1994,10 +2004,11 @@ int dpm_suspend(pm_message_t state)
 			break;
 	}
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
     //[PM_debug +++]
     //irq debug
     //This flag can check dpm_suspend state for resume_console in printk.c
-    pm_pwrcs_ret = 1; 
+    pm_pwrcs_ret = 1;
     //[PM_debug ---]
 #endif
 	mutex_unlock(&dpm_list_mtx);

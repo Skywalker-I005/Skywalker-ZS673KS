@@ -826,13 +826,13 @@ void lpm_stats_suspend_exit(void)
 	ns = do_div(exit_time, NSEC_PER_SEC);
 	pr_info("Suspended for %lld.%09u secs.\n", exit_time, ns);
     //[PM_debug ---]
-#endif 
+#endif
 	update_level_stats(&suspend_time_stats, exit_time, true);
 #ifdef CONFIG_ASUS_POWER_DEBUG
     //[PM_debug +++]
-#endif
     //irq debug
     ASUSEvtlog("[PM] Suspended for %lld.%09u secs.\n", exit_time, ns);
     //[PM_debug ---]
+#endif
 }
 EXPORT_SYMBOL(lpm_stats_suspend_exit);

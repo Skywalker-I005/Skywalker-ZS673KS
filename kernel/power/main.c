@@ -7,6 +7,7 @@
  */
 
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
 //[PM_debug +++]
 //add debug message header
 #define pr_fmt(fmt) "PM: " fmt
@@ -26,6 +27,7 @@
 
 #include "power.h"
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
 //[PM_debug +++]
 #include <linux/pm_debug.h>
 //[PM_debug ---]
@@ -626,6 +628,7 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
 	state = decode_state(buf, n);
 	if (state < PM_SUSPEND_MAX) {
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
 		//[PM_debug +++]
 		if (state == PM_SUSPEND_ON) {
 			pm_printk("unattended_timer: del_timer (state_store on)\n");
@@ -636,7 +639,7 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
             mod_pm_timer();
 		}
 		//[PM_debug ---]
-#endif        
+#endif
 		if (state == PM_SUSPEND_MEM)
 			state = mem_sleep_current;
 		error = pm_suspend(state);
@@ -653,6 +656,7 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
 
 power_attr(state);
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
 //[PM_debug +++]
 static ssize_t unattended_timer_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
@@ -678,6 +682,7 @@ static ssize_t unattended_timer_store(struct kobject *kobj,
 }
 
 power_attr(unattended_timer);
+
 //dump dpm device suspend/resume time
 unsigned int gResume_Time = 50000; //50000ns (50ms)
 unsigned int gSuspend_Time = 50000; //50000ns (50ms)
@@ -696,7 +701,7 @@ static ssize_t device_resume_time_store(struct kobject *kobj,
 										struct kobj_attribute *attr, const char *buf, size_t n)
 {
 	int rc = 0;
-    
+
 	rc = kstrtouint(buf, 10, &gResume_Time);
 	if (rc < 0)
     {
@@ -718,7 +723,7 @@ static ssize_t device_suspend_time_store(struct kobject *kobj,
 										struct kobj_attribute *attr, const char *buf, size_t n)
 {
 	int rc = 0;
-    
+
 	rc = kstrtouint(buf, 10, &gSuspend_Time);
 	if (rc < 0)
     {
@@ -740,7 +745,7 @@ static ssize_t alarm_debug_store(struct kobject *kobj,
 										struct kobj_attribute *attr, const char *buf, size_t n)
 {
 	int rc = 0;
-    
+
 	rc = kstrtouint(buf, 10, &alarm_debug);
 	if (rc < 0)
     {
@@ -880,6 +885,7 @@ static ssize_t wake_lock_store(struct kobject *kobj,
 {
 	int error = pm_wake_lock(buf);
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
 	//[PM_debug +++]
 	int ret = strcmp(buf,"PowerManager.SuspendLockout");
 	if(0 == ret) {
@@ -906,11 +912,12 @@ static ssize_t wake_unlock_store(struct kobject *kobj,
 {
 	int error = pm_wake_unlock(buf);
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
 	//[PM_debug +++]
 	int ret = strcmp(buf,"PowerManager.SuspendLockout");
 	if(0 == ret) {
 		pm_printk("unattended_timer: mod_timer(%s SuspendLockout)\n");
-        mod_pm_timer();   
+        mod_pm_timer();
 		pm_printk("request_suspend_state: (0->3)\n");
 		ASUSEvtlog("[PM]request_suspend_state: (0->3)\n");
 	}
@@ -990,6 +997,7 @@ power_attr(pm_freeze_timeout);
 static struct attribute * g[] = {
 	&state_attr.attr,
 #ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
 //[PM_debug +++]
 	&unattended_timer_attr.attr,
 	&device_resume_time_attr.attr,
@@ -997,6 +1005,7 @@ static struct attribute * g[] = {
     &alarm_debug_attr.attr,
 //[PM_debug ---]
 #endif
+
 #ifdef CONFIG_PM_TRACE
 	&pm_trace_attr.attr,
 	&pm_trace_dev_match_attr.attr,

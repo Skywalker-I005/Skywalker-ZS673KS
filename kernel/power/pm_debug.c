@@ -33,6 +33,7 @@
 
 #include "power.h"
 
+#ifdef CONFIG_ASUS_POWER_DEBUG
 //[PM_debug +++]
 #include <linux/pm_debug.h>
 
@@ -119,3 +120,4 @@ void mod_pm_timer(){
 }
 EXPORT_SYMBOL_GPL(mod_pm_timer);                       
 //[PM_debug ---]
+#endif

@@ -21,5 +21,4 @@ void msm_rpmh_master_stats_print(void);
 void soc_sleep_stats_print(void);
 //[PM_debug ---]
 #endif
-
 #endif /* __QCOM_RPM_STATS_LOG_H__ */

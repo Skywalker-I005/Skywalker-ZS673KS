@@ -4,7 +4,8 @@
 
 #include <linux/types.h>
 
-#if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
+#ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
 //[PM_debug+++]
 extern int qrtr_first_msg;
 //[PM_debug---]

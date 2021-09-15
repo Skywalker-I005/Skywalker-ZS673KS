@@ -9,6 +9,7 @@
 #define _LINUX_PM_DEBUG_H
 #include <linux/timer.h>
 
+#ifdef CONFIG_ASUS_POWER_DEBUG
 //[PM_debug +++]
 #define PM_UNATTENDED_TIMEOUT   1000*60*10		//10min
 /*#define PM_UNATTENDED_TIMEOUT   1000*20		//20s*/
@@ -25,4 +26,5 @@ extern int pm_stay_unattended_period;
 extern void del_pm_timer(void);
 extern void mod_pm_timer(void);
 //[PM_debug ---]
+#endif
 #endif /* _LINUX_PM_DEBUG_H */

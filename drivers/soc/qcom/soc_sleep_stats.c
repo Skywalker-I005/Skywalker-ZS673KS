@@ -59,12 +59,12 @@ struct stats_entry {
 	struct entry entry;
 	struct appended_entry appended_entry;
 };
+
 #ifdef CONFIG_ASUS_POWER_DEBUG
 //[PM_debug +++]
 struct soc_sleep_stats_data *gsoc_drv;
 //[PM_debug ---]
 #endif
-
 static inline u64 get_time_in_sec(u64 counter)
 {
 	do_div(counter, arch_timer_get_rate());
@@ -92,7 +92,9 @@ static inline ssize_t append_data_to_buf(char *buf, int length,
 			 data->entry.accumulated,
 			 data->appended_entry.client_votes);
 }
-#if 0
+#ifdef CONFIG_ASUS_POWER_DEBUG
+// #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
+//[PM_debug +++]
 int pre_aosd_count;
 bool need_dump_rpmh_master_stat;
 void soc_sleep_stats_print(bool suspend)
@@ -107,7 +109,7 @@ void soc_sleep_stats_print(bool suspend)
 	char stat_type[5] = {0};
     char buf[200];
     ssize_t length = 0;
-    
+
     if(!drv){
         printk("[PM]%s failed.", __func__);
         return;
@@ -143,13 +145,13 @@ void soc_sleep_stats_print(bool suspend)
 			ae->client_votes = 0;
 		}
         memcpy(stat_type, &e->stat_type, sizeof(u32));
-        length += scnprintf(buf + length, PAGE_SIZE - length, 
+        length += scnprintf(buf + length, PAGE_SIZE - length,
                 "{%s:%u :%llu(s) :%llu(s) :%llu(s) :0x%x}",
              stat_type, e->count,
              e->last_entered_at,
              e->last_exited_at,
              e->accumulated,
-             ae->client_votes);                           
+             ae->client_votes);
 		if( i == 0 && suspend == 0)
 		{
 			ASUSEvtlog("[RPM] Resume: status: Mode: %s, Count: %d\n", stat_type, e->count);
@@ -164,7 +166,7 @@ void soc_sleep_stats_print(bool suspend)
 			pre_aosd_count=e->count;
 		}
 	}
-    printk("[PM]%s", buf);    
+    printk("[PM]%s", buf);
 }
 EXPORT_SYMBOL(soc_sleep_stats_print);
 //[PM_debug ---]

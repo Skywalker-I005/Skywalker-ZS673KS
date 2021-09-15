@@ -461,16 +461,16 @@ static ssize_t uts_status_proc_write(struct file *filp, const char __user *buff,
 	case 2:
 		printk("%s: QXDM disable\n");
 		g_qxdm_en = false;
-		break; 
+		break;
 	case 3:
 		printk("%s: QXDM enable\n");
 		g_qxdm_en = true;
-		break;       
+		break;
 	default:
 		printk("%s: Invalid mode\n");
 		break;
 	}
-    
+
 	return len;
 }
 
@@ -804,22 +804,24 @@ int asus_set_panelonoff_charging_current_limit(u32 panelOn)
 	}
 	return 0;
 }
+#ifdef CONFIG_ASUS_POWER_DEBUG
 //[PM_debug+++]
-#if defined ASUS_ZS673KS_PROJECT
+// #if defined ASUS_ZS673KS_PROJECT
 bool bBTM_OTG_EN; //used by qcom-hv-haptic.c
-#endif
 //[PM_debug---]
+#endif
 //[+++]Add the PMIC-GLINK interface of external functions for USB or RT1715 drivers
 int BTM_OTG_EN(bool enable)
 {
 	struct oem_set_BTM_OTG_req req_msg = { { 0 } };
 	int rc;
 
+#ifdef CONFIG_ASUS_POWER_DEBUG
     //[PM_debug+++]
-#if defined ASUS_ZS673KS_PROJECT
+// #if defined ASUS_ZS673KS_PROJECT
     bBTM_OTG_EN = enable;
-#endif
     //[PM_debug---]
+#endif
 	req_msg.hdr.owner = PMIC_GLINK_MSG_OWNER_OEM;
 	req_msg.hdr.type = MSG_TYPE_REQ_RESP;
 	req_msg.hdr.opcode = OEM_SET_BTM_OTG;
@@ -1833,11 +1835,11 @@ int asus_init_power_supply_prop(void) {
 void handle_bot_cc_reset(u32 reset)
 {
 	pr_err("[CHG] handle bot cc reset=%d", reset);
-	
+
 	typec_disable_function(1);
 	msleep(100);
 	typec_disable_function(0);
-	
+
 	return;
 }
 
@@ -2545,7 +2547,7 @@ void asus_update_thermal_result(void)
 
 	if (usb_alert_btm_flag != pre_usb_alert_btm_flag)
 		asus_set_charger_limit_mode(SET_BTM_THM_ALT_MODE, usb_alert_btm_flag);
-	
+
 	pre_usb_alert_side_flag = usb_alert_side_flag;
 	pre_usb_alert_btm_flag = usb_alert_btm_flag;
 
@@ -3259,7 +3261,7 @@ int asuslib_init(void) {
 	rc = extcon_dev_register(quickchg_extcon);
 	if (rc < 0)
 		printk(KERN_ERR "[BAT][CHG] failed to register ASUS quickchg extcon device rc=%d\n", rc);
-		
+
 	INIT_DELAYED_WORK(&asus_set_qc_state_work, asus_set_qc_state_worker);
 	//[---]Register the extcon for quick_charger
 
@@ -3271,7 +3273,7 @@ int asuslib_init(void) {
 	}
 	#if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
 	thermal_extcon->fnode_name = "usb_connector";
-	#endif	
+	#endif
 	rc = extcon_dev_register(thermal_extcon);
 	if (rc < 0)
 		printk(KERN_ERR "[BAT][CHG] failed to register ASUS thermal alert extcon device rc=%d\n", rc);
