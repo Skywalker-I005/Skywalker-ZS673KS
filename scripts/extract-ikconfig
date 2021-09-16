@@ -11,6 +11,8 @@
 # Licensed under the terms of the GNU General Public License.
 # ----------------------------------------------------------------------
 
+export LC_CTYPE=C
+
 cf1='IKCFG_ST\037\213\010'
 cf2='0123456789'
 
