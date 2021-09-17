@@ -30,7 +30,14 @@
 #include <linux/kthread.h>
 #include <linux/slab.h>
 #include <linux/kernel_stat.h>
+#ifdef CONFIG_VIRT_CPU_ACCOUNTING_NATIVE
 #include <asm/cputime.h>
+
+#ifndef cputime_to_nsecs
+# define cputime_to_nsecs(__ct)    \
+    (cputime_to_usecs(__ct) * NSEC_PER_USEC)
+#endif
+#endif /* CONFIG_VIRT_CPU_ACCOUNTING_NATIVE */
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/cpufreq_umbrella_core.h>
