@@ -2,7 +2,7 @@
  * drivers/cpufreq/cpufreq_umbrella_core.c
  *
  * Copyright (C) 2010 Google, Inc.
- *           (C) 2021 AbandonedCart <twistedumbrella@gmail.com>
+ *           (C) 2014-2021 AbandonedCart <twistedumbrella@gmail.com>
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -1517,10 +1517,10 @@ static ssize_t max_inactive_freq_screen_on_show(struct kobject *kobj, struct kob
 static ssize_t max_inactive_freq_screen_on_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t count)
 {
     unsigned int new_max_inactive_freq_screen_on;
-    
+
     if (!sscanf(buf, "%du", &new_max_inactive_freq_screen_on))
         return -EINVAL;
-    
+
     if (new_max_inactive_freq_screen_on == max_inactive_freq_screen_on)
         return count;
 
@@ -1541,13 +1541,13 @@ static ssize_t max_inactive_freq_screen_off_show(struct kobject *kobj, struct ko
 static ssize_t max_inactive_freq_screen_off_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t count)
 {
     unsigned int new_max_inactive_freq_screen_off;
-    
+
     if (!sscanf(buf, "%du", &new_max_inactive_freq_screen_off))
         return -EINVAL;
-    
+
     if (new_max_inactive_freq_screen_off == max_inactive_freq_screen_off)
         return count;
-    
+
     max_inactive_freq_screen_off = new_max_inactive_freq_screen_off;
     return count;
 }
@@ -1562,13 +1562,13 @@ static ssize_t max_inactive_freq_show(struct kobject *kobj, struct kobj_attribut
 static ssize_t max_inactive_freq_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t count)
 {
     unsigned int new_max_inactive_freq;
-    
+
     if (!sscanf(buf, "%du", &new_max_inactive_freq))
         return -EINVAL;
-    
+
     if (new_max_inactive_freq == max_inactive_freq)
         return count;
-    
+
     max_inactive_freq = new_max_inactive_freq;
     return count;
 }
@@ -2024,8 +2024,7 @@ static int __init cpufreq_umbrella_core_init(void)
 		init_timer_deferrable(&pcpu->cpu_timer);
 		pcpu->cpu_timer.function = cpufreq_umbrella_core_timer;
 		pcpu->cpu_timer.data = i;
-		init_timer(&pcpu->cpu_slack_timer);
-		pcpu->cpu_slack_timer.function = cpufreq_umbrella_core_nop_timer;
+		timer_setup(&pcpu->cpu_slack_timer, cpufreq_umbrella_core_nop_timer, 0UL);
 		spin_lock_init(&pcpu->load_lock);
 		init_rwsem(&pcpu->enable_sem);
 	}
