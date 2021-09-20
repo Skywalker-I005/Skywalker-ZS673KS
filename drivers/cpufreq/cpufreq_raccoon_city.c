@@ -67,7 +67,6 @@ struct raccoon_city_tunables {
 #define DEFAULT_GO_HISPEED_LOAD_MIN 95
 #define DEFAULT_GO_HISPEED_LOAD_MID 95
 #define DEFAULT_GO_HISPEED_LOAD_MAX 95
-#define DEFAULT_GO_HISPEED_LOAD DEFAULT_GO_HISPEED_LOAD_MAX
 	unsigned long go_hispeed_load;
 
 	/* Target load. Lower values result in higher CPU speeds. */
@@ -82,7 +81,6 @@ struct raccoon_city_tunables {
 #define DEFAULT_MIN_SAMPLE_TIME_MIN (80 * USEC_PER_MSEC)
 #define DEFAULT_MIN_SAMPLE_TIME_MID (80 * USEC_PER_MSEC)
 #define DEFAULT_MIN_SAMPLE_TIME_MAX (80 * USEC_PER_MSEC)
-#define DEFAULT_MIN_SAMPLE_TIME DEFAULT_MIN_SAMPLE_TIME_MAX
 	unsigned long min_sample_time;
 
 	/* The sample rate of the timer used to increase frequency */
@@ -112,7 +110,6 @@ struct raccoon_city_tunables {
 #define DEFAULT_TIMER_SLACK_MIN (20 * USEC_PER_MSEC)
 #define DEFAULT_TIMER_SLACK_MID (20 * USEC_PER_MSEC)
 #define DEFAULT_TIMER_SLACK_MAX (20 * USEC_PER_MSEC)
-#define DEFAULT_TIMER_SLACK DEFAULT_TIMER_SLACK_MAX
 	unsigned long timer_slack_delay;
 	unsigned long timer_slack;
 	bool io_is_busy;
@@ -178,9 +175,8 @@ static unsigned int default_target_loads[] = {
 #define DEFAULT_SAMPLING_RATE_MIN (20 * USEC_PER_MSEC)
 #define DEFAULT_SAMPLING_RATE_MID (20 * USEC_PER_MSEC)
 #define DEFAULT_SAMPLING_RATE_MAX (20 * USEC_PER_MSEC)
-#define DEFAULT_SAMPLING_RATE DEFAULT_SAMPLING_RATE_MAX
 /* Default HISPEED DELAY : DEFAULT_SAMPLING_RATE . */
-#define DEFAULT_ABOVE_HISPEED_DELAY DEFAULT_SAMPLING_RATE
+#define DEFAULT_ABOVE_HISPEED_DELAY DEFAULT_SAMPLING_RATE_MIN
 static unsigned int default_above_hispeed_delay[] = {
 	DEFAULT_ABOVE_HISPEED_DELAY
 };
