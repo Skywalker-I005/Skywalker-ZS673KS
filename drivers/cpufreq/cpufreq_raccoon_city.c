@@ -68,8 +68,8 @@ struct raccoon_city_tunables {
 	unsigned int hispeed_freq;
 
 	/* Go to hi speed when CPU load at or above this value.  Default 99 */
-#define DEFAULT_GO_HISPEED_LOAD_MIN 85
-#define DEFAULT_GO_HISPEED_LOAD_MID 90
+#define DEFAULT_GO_HISPEED_LOAD_MIN 95
+#define DEFAULT_GO_HISPEED_LOAD_MID 95
 #define DEFAULT_GO_HISPEED_LOAD_MAX 95
 #define DEFAULT_GO_HISPEED_LOAD DEFAULT_GO_HISPEED_LOAD_MAX
 	unsigned long go_hispeed_load;
@@ -84,9 +84,9 @@ struct raccoon_city_tunables {
 	 * down. Default :  80 * USEC_PER_MSEC .
 	 */
 #define DEFAULT_MIN_SAMPLE_TIME_MIN (80 * USEC_PER_MSEC)
-#define DEFAULT_MIN_SAMPLE_TIME_MID (60 * USEC_PER_MSEC)
-#define DEFAULT_MIN_SAMPLE_TIME_MAX (40 * USEC_PER_MSEC)
-#define DEFAULT_MIN_SAMPLE_TIME DEFAULT_MIN_SAMPLE_TIME_MIN
+#define DEFAULT_MIN_SAMPLE_TIME_MID (80 * USEC_PER_MSEC)
+#define DEFAULT_MIN_SAMPLE_TIME_MAX (80 * USEC_PER_MSEC)
+#define DEFAULT_MIN_SAMPLE_TIME DEFAULT_MIN_SAMPLE_TIME_MAX
 	unsigned long min_sample_time;
 
 	/* The sample rate of the timer used to increase frequency */
@@ -113,16 +113,16 @@ struct raccoon_city_tunables {
 	 * above minimum before wakeup to reduce speed, or -1 if unnecessary.
 	 * Default : 4 * DEFAULT_SAMPLING_RATE .
 	 */
-#define DEFAULT_TIMER_SLACK_MIN (30 * USEC_PER_MSEC)
-#define DEFAULT_TIMER_SLACK_MID (25 * USEC_PER_MSEC)
+#define DEFAULT_TIMER_SLACK_MIN (20 * USEC_PER_MSEC)
+#define DEFAULT_TIMER_SLACK_MID (20 * USEC_PER_MSEC)
 #define DEFAULT_TIMER_SLACK_MAX (20 * USEC_PER_MSEC)
 #define DEFAULT_TIMER_SLACK DEFAULT_TIMER_SLACK_MAX
 	unsigned long timer_slack_delay;
 	unsigned long timer_slack;
 	bool io_is_busy;
 
-#define DEFAULT_INACTIVE_FREQ_ON	 1612800
-#define DEFAULT_INACTIVE_FREQ_OFF   595200
+#define DEFAULT_INACTIVE_FREQ_ON 	998400
+#define DEFAULT_INACTIVE_FREQ_OFF 	595200
 #ifdef CONFIG_POWERSUSPEND
 	unsigned int max_inactive_freq_screen_on;
 	unsigned int max_inactive_freq_screen_off;
@@ -180,9 +180,9 @@ static unsigned int default_target_loads[] = {
 };
 
 #define DEFAULT_SAMPLING_RATE_MIN (20 * USEC_PER_MSEC)
-#define DEFAULT_SAMPLING_RATE_MID (25 * USEC_PER_MSEC)
-#define DEFAULT_SAMPLING_RATE_MAX (30 * USEC_PER_MSEC)
-#define DEFAULT_SAMPLING_RATE DEFAULT_SAMPLING_RATE_MIN
+#define DEFAULT_SAMPLING_RATE_MID (20 * USEC_PER_MSEC)
+#define DEFAULT_SAMPLING_RATE_MAX (20 * USEC_PER_MSEC)
+#define DEFAULT_SAMPLING_RATE DEFAULT_SAMPLING_RATE_MAX
 /* Default HISPEED DELAY : DEFAULT_SAMPLING_RATE . */
 #define DEFAULT_ABOVE_HISPEED_DELAY DEFAULT_SAMPLING_RATE
 static unsigned int default_above_hispeed_delay[] = {
@@ -1089,10 +1089,10 @@ gov_attr_wo(boostpulse);
 gov_attr_rw(boostpulse_duration);
 gov_attr_rw(io_is_busy);
 #ifdef CONFIG_POWERSUSPEND
-gov_attr_rw(max_inactive_freq_screen_on);
-gov_attr_rw(max_inactive_freq_screen_off);
+gov_attr_rwx(max_inactive_freq_screen_on);
+gov_attr_rwx(max_inactive_freq_screen_off);
 #endif
-gov_attr_rw(max_inactive_freq);
+gov_attr_rwx(max_inactive_freq);
 
 static struct attribute *raccoon_city_attributes[] = {
 	&target_loads.attr,
@@ -1297,59 +1297,51 @@ int cpufreq_raccoon_city_init(struct cpufreq_policy *policy)
 
 	/* Set tunables by cluster - XDA@nalas */
 	if (policy->cpu == 0) {
-      tunables->hispeed_freq = 1586000;
-      tunables->go_hispeed_load = DEFAULT_GO_HISPEED_LOAD_MIN;
-      tunables->min_sample_time = DEFAULT_MIN_SAMPLE_TIME_MIN;
-      tunables->boostpulse_duration = DEFAULT_MIN_SAMPLE_TIME_MIN;
-      tunables->sampling_rate = DEFAULT_SAMPLING_RATE_MIN;
-      tunables->timer_slack = DEFAULT_TIMER_SLACK_MIN;
-			tunables->timer_slack = DEFAULT_TIMER_SLACK_MIN;
-			tunables->timer_slack = DEFAULT_TIMER_SLACK_MIN;
-			tunables->timer_slack = DEFAULT_TIMER_SLACK_MIN;
+		tunables->hispeed_freq = policy->max;
+		tunables->go_hispeed_load = DEFAULT_GO_HISPEED_LOAD_MIN;
+		tunables->min_sample_time = DEFAULT_MIN_SAMPLE_TIME_MIN;
+		tunables->boostpulse_duration = DEFAULT_MIN_SAMPLE_TIME_MIN;
+		tunables->sampling_rate = DEFAULT_SAMPLING_RATE_MIN;
+		tunables->timer_slack = DEFAULT_TIMER_SLACK_MIN;
 #ifdef CONFIG_POWERSUSPEND
-			tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON;
-			tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF;
+		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON;
+		tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF;
 #endif
-			tunables->max_inactive_freq = DEFAULT_INACTIVE_FREQ_ON;
+		tunables->max_inactive_freq = DEFAULT_INACTIVE_FREQ_ON;
 	}
 	if (policy->cpu == 4) {
-      tunables->hispeed_freq = 1222000;
-      tunables->go_hispeed_load = DEFAULT_GO_HISPEED_LOAD_MID;
-      tunables->min_sample_time = DEFAULT_MIN_SAMPLE_TIME_MID;
-      tunables->boostpulse_duration = DEFAULT_MIN_SAMPLE_TIME_MID;
-      tunables->sampling_rate = DEFAULT_SAMPLING_RATE_MID;
-      tunables->timer_slack = DEFAULT_TIMER_SLACK_MID;
+		tunables->hispeed_freq = policy->max;
+		tunables->go_hispeed_load = DEFAULT_GO_HISPEED_LOAD_MID;
+		tunables->min_sample_time = DEFAULT_MIN_SAMPLE_TIME_MID;
+		tunables->boostpulse_duration = DEFAULT_MIN_SAMPLE_TIME_MID;
+		tunables->sampling_rate = DEFAULT_SAMPLING_RATE_MID;
+		tunables->timer_slack = DEFAULT_TIMER_SLACK_MID;
 #ifdef CONFIG_POWERSUSPEND
-			tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON;
-			tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF;
+		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON;
+		tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF;
 #endif
-			tunables->max_inactive_freq = DEFAULT_INACTIVE_FREQ_ON;
+		tunables->max_inactive_freq = DEFAULT_INACTIVE_FREQ_ON;
 	}
 	if (policy->cpu == 6) {
-      tunables->hispeed_freq = 1664000;
-      tunables->go_hispeed_load = DEFAULT_GO_HISPEED_LOAD_MAX;
-      tunables->min_sample_time = DEFAULT_MIN_SAMPLE_TIME_MAX;
-      tunables->boostpulse_duration = DEFAULT_MIN_SAMPLE_TIME_MAX;
-      tunables->sampling_rate = DEFAULT_SAMPLING_RATE_MAX;
-      tunables->timer_slack = DEFAULT_TIMER_SLACK_MAX;
+		tunables->hispeed_freq = policy->max;
+		tunables->go_hispeed_load = DEFAULT_GO_HISPEED_LOAD_MAX;
+		tunables->min_sample_time = DEFAULT_MIN_SAMPLE_TIME_MAX;
+		tunables->boostpulse_duration = DEFAULT_MIN_SAMPLE_TIME_MAX;
+		tunables->sampling_rate = DEFAULT_SAMPLING_RATE_MAX;
+		tunables->timer_slack = DEFAULT_TIMER_SLACK_MAX;
 #ifdef CONFIG_POWERSUSPEND
-			tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON;
-			tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF;
+		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON;
+		tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF;
 #endif
-			tunables->max_inactive_freq = DEFAULT_INACTIVE_FREQ_ON;
+		tunables->max_inactive_freq = DEFAULT_INACTIVE_FREQ_ON;
 	}
 
-	// tunables->hispeed_freq = policy->max;
 	tunables->above_hispeed_delay = default_above_hispeed_delay;
 	tunables->nabove_hispeed_delay =
-		ARRAY_SIZE(default_above_hispeed_delay);
-	// tunables->go_hispeed_load = DEFAULT_GO_HISPEED_LOAD;
+	ARRAY_SIZE(default_above_hispeed_delay);
 	tunables->target_loads = default_target_loads;
 	tunables->ntarget_loads = ARRAY_SIZE(default_target_loads);
-	// tunables->min_sample_time = DEFAULT_MIN_SAMPLE_TIME;
-	// tunables->boostpulse_duration = DEFAULT_MIN_SAMPLE_TIME;
-	// tunables->sampling_rate = DEFAULT_SAMPLING_RATE;
-	// tunables->timer_slack = DEFAULT_TIMER_SLACK;
+
 	update_slack_delay(tunables);
 
 	spin_lock_init(&tunables->target_loads_lock);
