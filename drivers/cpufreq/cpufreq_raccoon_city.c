@@ -56,11 +56,7 @@ __ATTR(_name, 0200, NULL, store_##_name)
 static struct governor_attr _name =					\
 __ATTR(_name, 0644, show_##_name, store_##_name)
 
-#define gov_attr_rwx(_name)						\
-static struct governor_attr _name =					\
-__ATTR(_name, 0666, show_##_name, store_##_name)
-
-/* Separate instance required for each 'interactive' directory in sysfs */
+/* Separate instance required for each 'raccoon_city' directory in sysfs */
 struct raccoon_city_tunables {
 	struct gov_attr_set attr_set;
 
@@ -189,7 +185,7 @@ static unsigned int default_above_hispeed_delay[] = {
 	DEFAULT_ABOVE_HISPEED_DELAY
 };
 
-/* Iterate over interactive policies for tunables */
+/* Iterate over raccoon_city policies for tunables */
 #define for_each_ipolicy(__ip)	\
 	list_for_each_entry(__ip, &tunables->attr_set.policy_list, tunables_hook)
 
@@ -744,7 +740,7 @@ err:
 	return ERR_PTR(err);
 }
 
-/* Interactive governor sysfs interface */
+/* raccoon_city governor sysfs interface */
 static struct raccoon_city_tunables *to_tunables(struct gov_attr_set *attr_set)
 {
 	return container_of(attr_set, struct raccoon_city_tunables, attr_set);
@@ -1089,10 +1085,10 @@ gov_attr_wo(boostpulse);
 gov_attr_rw(boostpulse_duration);
 gov_attr_rw(io_is_busy);
 #ifdef CONFIG_POWERSUSPEND
-gov_attr_rwx(max_inactive_freq_screen_on);
-gov_attr_rwx(max_inactive_freq_screen_off);
+gov_attr_rw(max_inactive_freq_screen_on);
+gov_attr_rw(max_inactive_freq_screen_off);
 #endif
-gov_attr_rwx(max_inactive_freq);
+gov_attr_rw(max_inactive_freq);
 
 static struct attribute *raccoon_city_attributes[] = {
 	&target_loads.attr,
@@ -1132,7 +1128,7 @@ static struct notifier_block cpufreq_raccoon_city_idle_nb = {
 	.notifier_call = cpufreq_raccoon_city_idle_notifier,
 };
 
-/* Interactive Governor callbacks */
+/* raccoon_city Governor callbacks */
 struct raccoon_city_governor {
 	struct cpufreq_governor gov;
 	unsigned int usage_count;
@@ -1296,6 +1292,7 @@ int cpufreq_raccoon_city_init(struct cpufreq_policy *policy)
 	}
 
 	/* Set tunables by cluster - XDA@nalas */
+	/*  Fixed and updated by AbandonedCart */
 	if (policy->cpu == 0) {
 		tunables->hispeed_freq = policy->max;
 		tunables->go_hispeed_load = DEFAULT_GO_HISPEED_LOAD_MIN;
@@ -1322,7 +1319,7 @@ int cpufreq_raccoon_city_init(struct cpufreq_policy *policy)
 #endif
 		tunables->max_inactive_freq = DEFAULT_INACTIVE_FREQ_ON;
 	}
-	if (policy->cpu == 6) {
+	if (policy->cpu == 7) {
 		tunables->hispeed_freq = policy->max;
 		tunables->go_hispeed_load = DEFAULT_GO_HISPEED_LOAD_MAX;
 		tunables->min_sample_time = DEFAULT_MIN_SAMPLE_TIME_MAX;
@@ -1578,6 +1575,5 @@ static void __exit cpufreq_raccoon_city_gov_exit(void)
 module_exit(cpufreq_raccoon_city_gov_exit);
 
 MODULE_AUTHOR("AbandonedCart <twistedumbrella@gmail.com>");
-MODULE_DESCRIPTION("'cpufreq_raccoon_city' - A cpufreq governor for "
-	"Latency sensitive workloads");
+MODULE_DESCRIPTION("CPUfreq policy governor 'raccoon_city'");
 MODULE_LICENSE("GPL");
