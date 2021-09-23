@@ -64,7 +64,7 @@ struct raccoon_city_tunables {
 	unsigned int hispeed_freq;
 
 	/* Go to hi speed when CPU load at or above this value.  Default 99 */
-#define DEFAULT_GO_HISPEED_LOAD_MIN 95
+#define DEFAULT_GO_HISPEED_LOAD_MIN 90
 #define DEFAULT_GO_HISPEED_LOAD_MID 95
 #define DEFAULT_GO_HISPEED_LOAD_MAX 95
 	unsigned long go_hispeed_load;
@@ -79,11 +79,14 @@ struct raccoon_city_tunables {
 	 * down. Default :  80 * USEC_PER_MSEC .
 	 */
 #define DEFAULT_MIN_SAMPLE_TIME_MIN (80 * USEC_PER_MSEC)
-#define DEFAULT_MIN_SAMPLE_TIME_MID (80 * USEC_PER_MSEC)
-#define DEFAULT_MIN_SAMPLE_TIME_MAX (80 * USEC_PER_MSEC)
+#define DEFAULT_MIN_SAMPLE_TIME_MID (60 * USEC_PER_MSEC)
+#define DEFAULT_MIN_SAMPLE_TIME_MAX (60 * USEC_PER_MSEC)
 	unsigned long min_sample_time;
 
 	/* The sample rate of the timer used to increase frequency */
+#define DEFAULT_SAMPLING_RATE_MIN (20 * USEC_PER_MSEC)
+#define DEFAULT_SAMPLING_RATE_MID (20 * USEC_PER_MSEC)
+#define DEFAULT_SAMPLING_RATE_MAX (20 * USEC_PER_MSEC)
 	unsigned long sampling_rate;
 
 	/*
@@ -107,12 +110,31 @@ struct raccoon_city_tunables {
 	 * above minimum before wakeup to reduce speed, or -1 if unnecessary.
 	 * Default : 4 * DEFAULT_SAMPLING_RATE .
 	 */
-#define DEFAULT_TIMER_SLACK_MIN (20 * USEC_PER_MSEC)
-#define DEFAULT_TIMER_SLACK_MID (20 * USEC_PER_MSEC)
-#define DEFAULT_TIMER_SLACK_MAX (20 * USEC_PER_MSEC)
+#define DEFAULT_TIMER_SLACK_MIN (4 * DEFAULT_SAMPLING_RATE_MIN)
+#define DEFAULT_TIMER_SLACK_MID (4 * DEFAULT_SAMPLING_RATE_MID)
+#define DEFAULT_TIMER_SLACK_MAX (4 * DEFAULT_SAMPLING_RATE_MAX)
 	unsigned long timer_slack_delay;
 	unsigned long timer_slack;
 	bool io_is_busy;
+
+/* Freq Table
+ * 300000
+ * 403200
+ * 499200
+ * 595200
+ * 691200
+ * 806400
+ * 902400
+ * 998400
+ * 1094400
+ * 1209600
+ * 1305600
+ * 1401600
+ * 1497600
+ * 1612800
+ * 1708800
+ * 1804800
+ */
 
 #define DEFAULT_INACTIVE_FREQ_ON 	998400
 #define DEFAULT_INACTIVE_FREQ_OFF 	595200
@@ -172,9 +194,6 @@ static unsigned int default_target_loads[] = {
   DEFAULT_TARGET_LOAD
 };
 
-#define DEFAULT_SAMPLING_RATE_MIN (20 * USEC_PER_MSEC)
-#define DEFAULT_SAMPLING_RATE_MID (20 * USEC_PER_MSEC)
-#define DEFAULT_SAMPLING_RATE_MAX (20 * USEC_PER_MSEC)
 /* Default HISPEED DELAY : DEFAULT_SAMPLING_RATE . */
 #define DEFAULT_ABOVE_HISPEED_DELAY DEFAULT_SAMPLING_RATE_MIN
 static unsigned int default_above_hispeed_delay[] = {

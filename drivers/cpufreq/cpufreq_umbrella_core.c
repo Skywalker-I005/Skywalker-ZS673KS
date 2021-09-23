@@ -101,7 +101,7 @@ struct umbrella_core_tunables {
 	unsigned int hispeed_freq;
 
 /* Go to hi speed when CPU load at or above this value. */
-#define DEFAULT_GO_HISPEED_LOAD_MIN 95
+#define DEFAULT_GO_HISPEED_LOAD_MIN 90
 #define DEFAULT_GO_HISPEED_LOAD_MID 95
 #define DEFAULT_GO_HISPEED_LOAD_MAX 95
 	unsigned long go_hispeed_load;
@@ -118,14 +118,16 @@ struct umbrella_core_tunables {
  * The minimum amount of time to spend at a frequency before we can ramp down.
  */
  #define DEFAULT_MIN_SAMPLE_TIME_MIN (80 * USEC_PER_MSEC)
- #define DEFAULT_MIN_SAMPLE_TIME_MID (80 * USEC_PER_MSEC)
- #define DEFAULT_MIN_SAMPLE_TIME_MAX (80 * USEC_PER_MSEC)
+ #define DEFAULT_MIN_SAMPLE_TIME_MID (60 * USEC_PER_MSEC)
+ #define DEFAULT_MIN_SAMPLE_TIME_MAX (60 * USEC_PER_MSEC)
 	unsigned long min_sample_time;
 
 /*
  * The sample rate of the timer used to increase frequency
  */
-#define DEFAULT_TIMER_RATE (20 * USEC_PER_MSEC)
+#define DEFAULT_TIMER_RATE_MIN (20 * USEC_PER_MSEC)
+#define DEFAULT_TIMER_RATE_MID (20 * USEC_PER_MSEC)
+#define DEFAULT_TIMER_RATE_MAX (20 * USEC_PER_MSEC)
 	unsigned long timer_rate;
 
 /* Busy SDF parameters*/
@@ -150,10 +152,29 @@ struct umbrella_core_tunables {
  * Max additional time to wait in idle, beyond timer_rate, at speeds above
  * minimum before wakeup to reduce speed, or -1 if unnecessary.
  */
- #define DEFAULT_TIMER_SLACK_MIN (20 * USEC_PER_MSEC)
- #define DEFAULT_TIMER_SLACK_MID (20 * USEC_PER_MSEC)
- #define DEFAULT_TIMER_SLACK_MAX (20 * USEC_PER_MSEC)
+ #define DEFAULT_TIMER_SLACK_MIN (4 * DEFAULT_TIMER_RATE_MIN)
+ #define DEFAULT_TIMER_SLACK_MID (4 * DEFAULT_TIMER_RATE_MID)
+ #define DEFAULT_TIMER_SLACK_MAX (4 * DEFAULT_TIMER_RATE_MAX)
  	unsigned long timer_slack;
+
+/* Freq Table
+ * 300000
+ * 403200
+ * 499200
+ * 595200
+ * 691200
+ * 806400
+ * 902400
+ * 998400
+ * 1094400
+ * 1209600
+ * 1305600
+ * 1401600
+ * 1497600
+ * 1612800
+ * 1708800
+ * 1804800
+ */
 
 #define DEFAULT_INACTIVE_FREQ_ON 	998400
 #define DEFAULT_INACTIVE_FREQ_OFF 	595200
@@ -196,11 +217,8 @@ static unsigned int default_target_loads[] = {
   DEFAULT_TARGET_LOAD
 };
 
-#define DEFAULT_SAMPLING_RATE_MIN (20 * USEC_PER_MSEC)
-#define DEFAULT_SAMPLING_RATE_MID (20 * USEC_PER_MSEC)
-#define DEFAULT_SAMPLING_RATE_MAX (20 * USEC_PER_MSEC)
 /* Default HISPEED DELAY : DEFAULT_SAMPLING_RATE . */
-#define DEFAULT_ABOVE_HISPEED_DELAY DEFAULT_SAMPLING_RATE_MIN
+#define DEFAULT_ABOVE_HISPEED_DELAY DEFAULT_TIMER_RATE_MIN
 static unsigned int default_above_hispeed_delay[] = {
 	DEFAULT_ABOVE_HISPEED_DELAY
 };
@@ -220,22 +238,22 @@ static unsigned int uc_mode = 0;
 static unsigned int enforced_mode = 0;
 static u64 mode_check_timestamp = 0;
 
-#define DEFAULT_MULTI_ENTER_TIME (4 * DEFAULT_TIMER_RATE)
+#define DEFAULT_MULTI_ENTER_TIME (4 * DEFAULT_TIMER_RATE_MIN)
 static unsigned long multi_enter_time = DEFAULT_MULTI_ENTER_TIME;
 static unsigned long time_in_multi_enter = 0;
 static unsigned int multi_enter_load = 4 * DEFAULT_TARGET_LOAD;
 
-#define DEFAULT_MULTI_EXIT_TIME (16 * DEFAULT_TIMER_RATE)
+#define DEFAULT_MULTI_EXIT_TIME (16 * DEFAULT_TIMER_RATE_MIN)
 static unsigned long multi_exit_time = DEFAULT_MULTI_EXIT_TIME;
 static unsigned long time_in_multi_exit = 0;
 static unsigned int multi_exit_load = 4 * DEFAULT_TARGET_LOAD;
 
-#define DEFAULT_SINGLE_ENTER_TIME (8 * DEFAULT_TIMER_RATE)
+#define DEFAULT_SINGLE_ENTER_TIME (8 * DEFAULT_TIMER_RATE_MIN)
 static unsigned long single_enter_time = DEFAULT_SINGLE_ENTER_TIME;
 static unsigned long time_in_single_enter = 0;
 static unsigned int single_enter_load = DEFAULT_TARGET_LOAD;
 
-#define DEFAULT_SINGLE_EXIT_TIME (4 * DEFAULT_TIMER_RATE)
+#define DEFAULT_SINGLE_EXIT_TIME (4 * DEFAULT_TIMER_RATE_MIN)
 static unsigned long single_exit_time = DEFAULT_SINGLE_EXIT_TIME;
 static unsigned long time_in_single_exit = 0;
 static unsigned int single_exit_load = DEFAULT_TARGET_LOAD;
@@ -256,10 +274,14 @@ static unsigned int sampling_down_factor_set[MAX_PARAM_SET];
 #endif /* CONFIG_UC_MODE_AUTO_CHANGE */
 
 #ifdef CONFIG_UC_MODE_AUTO_CHANGE_BOOST
-// BIMC freq vs BW table
-// BW for 8084 : 762 1144 1525 2288 3051 3952 4684 5859 7019 8056 10101 12145 16250
-// Freq for 8974 (KHz) : 19200   37500   50000   75000  100000  150000  200000  307200  460800  614400  825600
-// Freq for 8084 (KHz) : 19200   37500   50000   75000  100000  150000  200000  307200  384000  460800  556800  691200  825600  931200
+/* BIMC freq vs BW table
+ * BW for 8084 :
+ *  762      1144    1525    2288    3051    3952    4684    5859    7019    8056    10101   12145   16250
+ * Freq for 8974 (KHz):
+ *  19200    37500   50000   75000   100000  150000  200000  307200  460800  614400  825600
+ * Freq for 8084 (KHz):
+ *  19200    37500   50000   75000   100000  150000  200000  307200  384000  460800  556800  691200  825600  931200
+ */
 static unsigned long bimc_hispeed_freq = 0	// bimc hispeed freq on mode change. default : MHz
 static int mode_count = 0;
 extern int request_bimc_clk(unsigned long request_clk);
@@ -1902,7 +1924,7 @@ int cpufreq_umbrella_core_init(struct cpufreq_policy *policy)
 		tunables->go_hispeed_load = DEFAULT_GO_HISPEED_LOAD_MIN;
 		tunables->min_sample_time = DEFAULT_MIN_SAMPLE_TIME_MIN;
 		tunables->boostpulse_duration = DEFAULT_MIN_SAMPLE_TIME_MIN;
-		tunables->timer_rate = DEFAULT_SAMPLING_RATE_MIN;
+		tunables->timer_rate = DEFAULT_TIMER_RATE_MIN;
 		tunables->timer_slack = DEFAULT_TIMER_SLACK_MIN;
 #ifdef CONFIG_POWERSUSPEND
 		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON;
@@ -1915,7 +1937,7 @@ int cpufreq_umbrella_core_init(struct cpufreq_policy *policy)
 		tunables->go_hispeed_load = DEFAULT_GO_HISPEED_LOAD_MID;
 		tunables->min_sample_time = DEFAULT_MIN_SAMPLE_TIME_MID;
 		tunables->boostpulse_duration = DEFAULT_MIN_SAMPLE_TIME_MID;
-		tunables->timer_rate = DEFAULT_SAMPLING_RATE_MID;
+		tunables->timer_rate = DEFAULT_TIMER_RATE_MID;
 		tunables->timer_slack = DEFAULT_TIMER_SLACK_MID;
 #ifdef CONFIG_POWERSUSPEND
 		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON;
@@ -1928,7 +1950,7 @@ int cpufreq_umbrella_core_init(struct cpufreq_policy *policy)
 		tunables->go_hispeed_load = DEFAULT_GO_HISPEED_LOAD_MAX;
 		tunables->min_sample_time = DEFAULT_MIN_SAMPLE_TIME_MAX;
 		tunables->boostpulse_duration = DEFAULT_MIN_SAMPLE_TIME_MAX;
-		tunables->timer_rate = DEFAULT_SAMPLING_RATE_MAX;
+		tunables->timer_rate = DEFAULT_TIMER_RATE_MAX;
 		tunables->timer_slack = DEFAULT_TIMER_SLACK_MAX;
 #ifdef CONFIG_POWERSUSPEND
 		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON;
