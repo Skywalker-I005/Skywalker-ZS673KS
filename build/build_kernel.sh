@@ -17,15 +17,14 @@ if [ $PLATFORM == "darwin-x86" ]; then
     BUILDROOT=/Volumes/Android
     PREBUILT=$BUILDROOT/$PLATFORM/toolchains
     CLANGVER=clang-r416183d
-    CLANG_BIN=${PREBUILT}/$PLATFORM/$CLANGVER/bin
     CC_BIN=${PREBUILT}/aarch64-linux-android-4.9/bin
     CCC_BIN=${PREBUILT}/arm-linux-androideabi-4.9/bin
 else
 	BUILDROOT=/mnt/hgfs/Android
-#   CLANG_BIN=${PREBUILT}/$PLATFORM/clang-r416183c/bin
     PREBUILT=$BUILDROOT/$PLATFORM/toolchains
-    CLANG_BIN=${PREBUILT}/proton-clang/bin
+    CLANGVER=clang-r416183d
 fi
+CLANG_BIN=${PREBUILT}/$PLATFORM/$CLANGVER/bin
 
 cd $BUILDROOT/SAUS-ZS673KS
 
@@ -75,6 +74,7 @@ echo "Configure Build"
 echo
 
 mkdir -p out
+mkdir -p release/modules/system/vendor/lib/modules
 
 if [ $PLATFORM == "darwin-x86" ]; then
     export PATH=${CLANG_BIN}:${CC_BIN}:${CCC_BIN}:${PATH}
@@ -82,6 +82,7 @@ if [ $PLATFORM == "darwin-x86" ]; then
     export CLANG_TRIPLE=aarch64-linux-gnu-
     export CROSS_COMPILE=aarch64-linux-android-
     export CROSS_COMPILE_COMPAT=arm-linux-androideabi-
+    #export DTC_EXT=${PREBUILT}/prebuilts-master/dtc
 else
     export PATH=${CLANG_BIN}:${PATH}
     export CROSS_COMPILE=aarch64-linux-gnu-
