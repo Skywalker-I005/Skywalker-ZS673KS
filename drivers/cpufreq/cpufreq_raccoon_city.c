@@ -56,6 +56,31 @@ __ATTR(_name, 0200, NULL, store_##_name)
 static struct governor_attr _name =					\
 __ATTR(_name, 0644, show_##_name, store_##_name)
 
+/* Freq Table
+ * ----------------------------
+ * policy0   policy4   policy7
+ * ----------------------------
+ * 300000    710400    844800
+ * 403200    844800    960000
+ * 499200    960000    1075200
+ * 595200    1075200   1190400
+ * 691200    1209600   1305600
+ * 806400    1324800   1420800
+ * 902400    1440000   1555200
+ * 998400    1555200   1670400
+ * 1094400   1670400   1785600
+ * 1209600   1766400   1900800
+ * 1305600   1881600   2035200
+ * 1401600   1996800   2150400
+ * 1497600   2112000   2265600
+ * 1612800   2227200   2380800
+ * 1708800   2342400   2496000
+ * 1804800   2419200   2592000
+ *                     2688000
+ *                     2764800
+ *                     2841600
+ */
+
 /* Separate instance required for each 'raccoon_city' directory in sysfs */
 struct raccoon_city_tunables {
 	struct gov_attr_set attr_set;
@@ -117,31 +142,12 @@ struct raccoon_city_tunables {
 	unsigned long timer_slack;
 	bool io_is_busy;
 
-/* Freq Table
- * ----------------------------
- * policy0   policy4   policy7
- * ----------------------------
- * 300000    710400    844800
- * 403200    844800    960000
- * 499200    960000    1075200
- * 595200    1075200   1190400
- * 691200    1209600   1305600
- * 806400    1324800   1420800
- * 902400    1440000   1555200
- * 998400    1555200   1670400
- * 1094400   1670400   1785600
- * 1209600   1766400   1900800
- * 1305600   1881600   2035200
- * 1401600   1996800   2150400
- * 1497600   2112000   2265600
- * 1612800   2227200   2380800
- * 1708800   2342400   2496000
- * 1804800   2419200   2592000
- *                     2688000
- *                     2764800
- *                     2841600
- */
-
+	 /*
+	  * The maximum frequencies for inactivity, or the time which the
+		* the load does not meet the minimum requirements to scale.
+		* Devices that support powersuspend will also consider current
+		* screen state in determining the maximum frequency values.
+	  */
 #define DEFAULT_INACTIVE_FREQ_ON_MIN		1612800
 #define DEFAULT_INACTIVE_FREQ_ON_MID		1670400
 #define DEFAULT_INACTIVE_FREQ_ON_MAX		1670400
@@ -452,7 +458,8 @@ static void eval_target_freq(struct raccoon_city_cpu *icpu)
 			if (new_freq < tunables->hispeed_freq)
 				new_freq = tunables->hispeed_freq;
 		}
-		if (new_freq > tunables->max_inactive_freq && cpu_load < 99)
+		if (new_freq > tunables->max_inactive_freq
+			&& cpu_load < default_target_loads[cpu])
 			new_freq = tunables->max_inactive_freq;
 	} else {
 		new_freq = choose_freq(icpu, loadadjfreq);

@@ -95,68 +95,6 @@ static cpumask_t speedchange_cpumask;
 static spinlock_t speedchange_cpumask_lock;
 static struct mutex gov_lock;
 
-struct umbrella_core_tunables {
-	struct gov_attr_set attr_set;
-/* Hi speed to bump to from lo speed when load burst (default max) */
-	unsigned int hispeed_freq;
-
-/* Go to hi speed when CPU load at or above this value. */
-#define DEFAULT_GO_HISPEED_LOAD_MIN 85
-#define DEFAULT_GO_HISPEED_LOAD_MID 90
-#define DEFAULT_GO_HISPEED_LOAD_MAX 95
-	unsigned long go_hispeed_load;
-
-/* Sampling down factor to be applied to min_sample_time at max freq */
-	unsigned int sampling_down_factor;
-
-/* Target load.  Lower values result in higher CPU speeds. */
-	spinlock_t target_loads_lock;
-	unsigned int *target_loads;
-	int ntarget_loads;
-
-/*
- * The minimum amount of time to spend at a frequency before we can ramp down.
- */
- #define DEFAULT_MIN_SAMPLE_TIME_MIN (80 * USEC_PER_MSEC)
- #define DEFAULT_MIN_SAMPLE_TIME_MID (60 * USEC_PER_MSEC)
- #define DEFAULT_MIN_SAMPLE_TIME_MAX (40 * USEC_PER_MSEC)
-	unsigned long min_sample_time;
-
-/*
- * The sample rate of the timer used to increase frequency
- */
-#define DEFAULT_TIMER_RATE_MIN (20 * USEC_PER_MSEC)
-#define DEFAULT_TIMER_RATE_MID (30 * USEC_PER_MSEC)
-#define DEFAULT_TIMER_RATE_MAX (40 * USEC_PER_MSEC)
-	unsigned long timer_rate;
-
-/* Busy SDF parameters*/
-#define MIN_BUSY_TIME (100 * USEC_PER_MSEC)
-
-/*
- * Wait this long before raising speed above hispeed, by default a single
- * timer interval.
- */
-  spinlock_t above_hispeed_delay_lock;
-  unsigned int *above_hispeed_delay;
-  int nabove_hispeed_delay;
-
-/* Non-zero means indefinite speed boost active */
-  int boost;
-/* Duration of a boot pulse in usecs */
-  int boostpulse_duration;
-/* End time of boost pulse in ktime converted to usecs */
-  u64 boostpulse_endtime;
-
-/*
- * Max additional time to wait in idle, beyond timer_rate, at speeds above
- * minimum before wakeup to reduce speed, or -1 if unnecessary.
- */
- #define DEFAULT_TIMER_SLACK_MIN (4 * DEFAULT_TIMER_RATE_MIN)
- #define DEFAULT_TIMER_SLACK_MID (4 * DEFAULT_TIMER_RATE_MID)
- #define DEFAULT_TIMER_SLACK_MAX (4 * DEFAULT_TIMER_RATE_MAX)
- 	unsigned long timer_slack;
-
 /* Freq Table
  * ----------------------------
  * policy0   policy4   policy7
@@ -182,6 +120,74 @@ struct umbrella_core_tunables {
  *                     2841600
  */
 
+struct umbrella_core_tunables {
+	struct gov_attr_set attr_set;
+  /* Hi speed to bump to from lo speed when load burst (default max) */
+	unsigned int hispeed_freq;
+
+  /* Go to hi speed when CPU load at or above this value. */
+#define DEFAULT_GO_HISPEED_LOAD_MIN 85
+#define DEFAULT_GO_HISPEED_LOAD_MID 90
+#define DEFAULT_GO_HISPEED_LOAD_MAX 95
+	unsigned long go_hispeed_load;
+
+  /* Sampling down factor to be applied to min_sample_time at max freq */
+	unsigned int sampling_down_factor;
+
+  /* Target load.  Lower values result in higher CPU speeds. */
+	spinlock_t target_loads_lock;
+	unsigned int *target_loads;
+	int ntarget_loads;
+
+  /*
+   * The minimum amount of time to spend at a frequency before we can ramp down.
+   */
+ #define DEFAULT_MIN_SAMPLE_TIME_MIN (80 * USEC_PER_MSEC)
+ #define DEFAULT_MIN_SAMPLE_TIME_MID (60 * USEC_PER_MSEC)
+ #define DEFAULT_MIN_SAMPLE_TIME_MAX (40 * USEC_PER_MSEC)
+	unsigned long min_sample_time;
+
+  /*
+   * The sample rate of the timer used to increase frequency
+   */
+#define DEFAULT_TIMER_RATE_MIN (20 * USEC_PER_MSEC)
+#define DEFAULT_TIMER_RATE_MID (30 * USEC_PER_MSEC)
+#define DEFAULT_TIMER_RATE_MAX (40 * USEC_PER_MSEC)
+	unsigned long timer_rate;
+
+  /* Busy SDF parameters*/
+#define MIN_BUSY_TIME (100 * USEC_PER_MSEC)
+
+  /*
+   * Wait this long before raising speed above hispeed, by default a single
+   * timer interval.
+   */
+  spinlock_t above_hispeed_delay_lock;
+  unsigned int *above_hispeed_delay;
+  int nabove_hispeed_delay;
+
+  /* Non-zero means indefinite speed boost active */
+  int boost;
+  /* Duration of a boot pulse in usecs */
+  int boostpulse_duration;
+  /* End time of boost pulse in ktime converted to usecs */
+  u64 boostpulse_endtime;
+
+  /*
+   * Max additional time to wait in idle, beyond timer_rate, at speeds above
+   * minimum before wakeup to reduce speed, or -1 if unnecessary.
+   */
+#define DEFAULT_TIMER_SLACK_MIN (4 * DEFAULT_TIMER_RATE_MIN)
+#define DEFAULT_TIMER_SLACK_MID (4 * DEFAULT_TIMER_RATE_MID)
+#define DEFAULT_TIMER_SLACK_MAX (4 * DEFAULT_TIMER_RATE_MAX)
+ 	unsigned long timer_slack;
+
+   /*
+	  * The maximum frequencies for inactivity, or the time which the
+		* the load does not meet the minimum requirements to scale.
+		* Devices that support powersuspend will also consider current
+		* screen state in determining the maximum frequency values.
+	  */
 #define DEFAULT_INACTIVE_FREQ_ON_MIN		1612800
 #define DEFAULT_INACTIVE_FREQ_ON_MID		1670400
 #define DEFAULT_INACTIVE_FREQ_ON_MAX		1670400
@@ -196,12 +202,12 @@ struct umbrella_core_tunables {
 
   bool io_is_busy;
 
-/*
- * If the max load among other CPUs is higher than up_threshold_any_cpu_load
- * and if the highest frequency among the other CPUs is higher than
- * up_threshold_any_cpu_freq then do not let the frequency to drop below
- * sync_freq
- */
+  /*
+   * If the max load among other CPUs is higher than up_threshold_any_cpu_load
+   * and if the highest frequency among the other CPUs is higher than
+   * up_threshold_any_cpu_freq then do not let the frequency to drop below
+   * sync_freq
+   */
   unsigned int up_threshold_any_cpu_load;
   unsigned int sync_freq;
   unsigned int up_threshold_any_cpu_freq;
@@ -222,7 +228,7 @@ struct cpufreq_loadinfo {
 
 static spinlock_t mode_lock;
 
-#define DEFAULT_TARGET_LOAD 85
+#define DEFAULT_TARGET_LOAD 90
 static unsigned int default_target_loads[] = {
   DEFAULT_TARGET_LOAD
 };
@@ -724,7 +730,8 @@ static void cpufreq_umbrella_core_timer(struct timer_list *timers)
 			if (new_freq < tunables->hispeed_freq)
 				new_freq = tunables->hispeed_freq;
 		}
-		if (new_freq > tunables->max_inactive_freq && cpu_load < 99)
+		if (new_freq > tunables->max_inactive_freq
+      && cpu_load < default_target_loads[cpu])
 			new_freq = tunables->max_inactive_freq;
 	} else {
 		new_freq = choose_freq(pcpu, loadadjfreq);
