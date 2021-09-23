@@ -158,26 +158,36 @@ struct umbrella_core_tunables {
  	unsigned long timer_slack;
 
 /* Freq Table
- * 300000
- * 403200
- * 499200
- * 595200
- * 691200
- * 806400
- * 902400
- * 998400
- * 1094400
- * 1209600
- * 1305600
- * 1401600
- * 1497600
- * 1612800
- * 1708800
- * 1804800
+ * ----------------------------
+ * policy0    policy4   policy7
+ * ----------------------------
+ * 300000     710400    844800
+ * 403200     844800    960000
+ * 499200     960000    1075200
+ * 595200     1075200   1190400
+ * 691200     1209600   1305600
+ * 806400     1324800   1420800
+ * 902400     1440000   1555200
+ * 998400     1555200   1670400
+ * 1094400    1670400   1785600
+ * 1209600    1766400   1900800
+ * 1305600    1881600   2035200
+ * 1401600    1996800   2150400
+ * 1497600    2112000   2265600
+ * 1612800    2227200   2380800
+ * 1708800    2342400   2496000
+ * 1804800    2419200   2592000
+ *                      2688000
+ *                      2764800
+ *                      2841600
  */
 
-#define DEFAULT_INACTIVE_FREQ_ON 	998400
-#define DEFAULT_INACTIVE_FREQ_OFF 	595200
+#define DEFAULT_INACTIVE_FREQ_ON_MIN		998400
+#define DEFAULT_INACTIVE_FREQ_ON_MID		1555200
+#define DEFAULT_INACTIVE_FREQ_ON_MAX		1670400
+#define DEFAULT_INACTIVE_FREQ_OFF_MIN		595200
+#define DEFAULT_INACTIVE_FREQ_OFF_MID 	1075200
+#define DEFAULT_INACTIVE_FREQ_OFF_MAX 	1190400
 #ifdef CONFIG_POWERSUSPEND
 	unsigned int max_inactive_freq_screen_on;
 	unsigned int max_inactive_freq_screen_off;
@@ -1927,10 +1937,10 @@ int cpufreq_umbrella_core_init(struct cpufreq_policy *policy)
 		tunables->timer_rate = DEFAULT_TIMER_RATE_MIN;
 		tunables->timer_slack = DEFAULT_TIMER_SLACK_MIN;
 #ifdef CONFIG_POWERSUSPEND
-		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON;
-		tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF;
+		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON_MIN;
+		tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF_MIN;
 #endif
-		tunables->max_inactive_freq = DEFAULT_INACTIVE_FREQ_ON;
+		tunables->max_inactive_freq = DEFAULT_INACTIVE_FREQ_ON_MIN;
 	}
 	if (policy->cpu == 4) {
 		tunables->hispeed_freq = policy->max;
@@ -1940,10 +1950,10 @@ int cpufreq_umbrella_core_init(struct cpufreq_policy *policy)
 		tunables->timer_rate = DEFAULT_TIMER_RATE_MID;
 		tunables->timer_slack = DEFAULT_TIMER_SLACK_MID;
 #ifdef CONFIG_POWERSUSPEND
-		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON;
-		tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF;
+		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON_MID;
+		tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF_MID;
 #endif
-		tunables->max_inactive_freq = DEFAULT_INACTIVE_FREQ_ON;
+		tunables->max_inactive_freq = DEFAULT_INACTIVE_FREQ_ON_MID;
 	}
 	if (policy->cpu == 7) {
 		tunables->hispeed_freq = policy->max;
@@ -1953,10 +1963,10 @@ int cpufreq_umbrella_core_init(struct cpufreq_policy *policy)
 		tunables->timer_rate = DEFAULT_TIMER_RATE_MAX;
 		tunables->timer_slack = DEFAULT_TIMER_SLACK_MAX;
 #ifdef CONFIG_POWERSUSPEND
-		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON;
-		tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF;
+		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON_MAX;
+		tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF_MAX;
 #endif
-		tunables->max_inactive_freq = DEFAULT_INACTIVE_FREQ_ON;
+		tunables->max_inactive_freq = DEFAULT_INACTIVE_FREQ_ON_MAX;
 	}
 
 	tunables->above_hispeed_delay = default_above_hispeed_delay;
