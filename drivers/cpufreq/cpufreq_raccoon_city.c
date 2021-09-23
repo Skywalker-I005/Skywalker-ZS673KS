@@ -64,8 +64,8 @@ struct raccoon_city_tunables {
 	unsigned int hispeed_freq;
 
 	/* Go to hi speed when CPU load at or above this value.  Default 99 */
-#define DEFAULT_GO_HISPEED_LOAD_MIN 90
-#define DEFAULT_GO_HISPEED_LOAD_MID 95
+#define DEFAULT_GO_HISPEED_LOAD_MIN 85
+#define DEFAULT_GO_HISPEED_LOAD_MID 90
 #define DEFAULT_GO_HISPEED_LOAD_MAX 95
 	unsigned long go_hispeed_load;
 
@@ -80,13 +80,13 @@ struct raccoon_city_tunables {
 	 */
 #define DEFAULT_MIN_SAMPLE_TIME_MIN (80 * USEC_PER_MSEC)
 #define DEFAULT_MIN_SAMPLE_TIME_MID (60 * USEC_PER_MSEC)
-#define DEFAULT_MIN_SAMPLE_TIME_MAX (60 * USEC_PER_MSEC)
+#define DEFAULT_MIN_SAMPLE_TIME_MAX (40 * USEC_PER_MSEC)
 	unsigned long min_sample_time;
 
 	/* The sample rate of the timer used to increase frequency */
 #define DEFAULT_SAMPLING_RATE_MIN (20 * USEC_PER_MSEC)
-#define DEFAULT_SAMPLING_RATE_MID (20 * USEC_PER_MSEC)
-#define DEFAULT_SAMPLING_RATE_MAX (20 * USEC_PER_MSEC)
+#define DEFAULT_SAMPLING_RATE_MID (30 * USEC_PER_MSEC)
+#define DEFAULT_SAMPLING_RATE_MAX (40 * USEC_PER_MSEC)
 	unsigned long sampling_rate;
 
 	/*
@@ -119,35 +119,35 @@ struct raccoon_city_tunables {
 
 /* Freq Table
  * ----------------------------
- * policy0    policy4   policy7
+ * policy0   policy4   policy7
  * ----------------------------
- * 300000     710400    844800
- * 403200     844800    960000
- * 499200     960000    1075200
- * 595200     1075200   1190400
- * 691200     1209600   1305600
- * 806400     1324800   1420800
- * 902400     1440000   1555200
- * 998400     1555200   1670400
- * 1094400    1670400   1785600
- * 1209600    1766400   1900800
- * 1305600    1881600   2035200
- * 1401600    1996800   2150400
- * 1497600    2112000   2265600
- * 1612800    2227200   2380800
- * 1708800    2342400   2496000
- * 1804800    2419200   2592000
- *                      2688000
- *                      2764800
- *                      2841600
+ * 300000    710400    844800
+ * 403200    844800    960000
+ * 499200    960000    1075200
+ * 595200    1075200   1190400
+ * 691200    1209600   1305600
+ * 806400    1324800   1420800
+ * 902400    1440000   1555200
+ * 998400    1555200   1670400
+ * 1094400   1670400   1785600
+ * 1209600   1766400   1900800
+ * 1305600   1881600   2035200
+ * 1401600   1996800   2150400
+ * 1497600   2112000   2265600
+ * 1612800   2227200   2380800
+ * 1708800   2342400   2496000
+ * 1804800   2419200   2592000
+ *                     2688000
+ *                     2764800
+ *                     2841600
  */
 
-#define DEFAULT_INACTIVE_FREQ_ON_MIN		998400
-#define DEFAULT_INACTIVE_FREQ_ON_MID		1555200
+#define DEFAULT_INACTIVE_FREQ_ON_MIN		1612800
+#define DEFAULT_INACTIVE_FREQ_ON_MID		1670400
 #define DEFAULT_INACTIVE_FREQ_ON_MAX		1670400
-#define DEFAULT_INACTIVE_FREQ_OFF_MIN		595200
-#define DEFAULT_INACTIVE_FREQ_OFF_MID 	1075200
-#define DEFAULT_INACTIVE_FREQ_OFF_MAX 	1190400
+#define DEFAULT_INACTIVE_FREQ_OFF_MIN		806400
+#define DEFAULT_INACTIVE_FREQ_OFF_MID 	844800
+#define DEFAULT_INACTIVE_FREQ_OFF_MAX 	844800
 #ifdef CONFIG_POWERSUSPEND
 	unsigned int max_inactive_freq_screen_on;
 	unsigned int max_inactive_freq_screen_off;
@@ -199,7 +199,7 @@ static cpumask_t speedchange_cpumask;
 static spinlock_t speedchange_cpumask_lock;
 
 /* Target load. Lower values result in higher CPU speeds. */
-#define DEFAULT_TARGET_LOAD 85
+#define DEFAULT_TARGET_LOAD 90
 static unsigned int default_target_loads[] = {
   DEFAULT_TARGET_LOAD
 };
