@@ -148,12 +148,12 @@ struct raccoon_city_tunables {
 		* Devices that support powersuspend will also consider current
 		* screen state in determining the maximum frequency values.
 	  */
-#define DEFAULT_INACTIVE_FREQ_ON_MIN		1612800
-#define DEFAULT_INACTIVE_FREQ_ON_MID		1670400
-#define DEFAULT_INACTIVE_FREQ_ON_MAX		1670400
-#define DEFAULT_INACTIVE_FREQ_OFF_MIN		806400
-#define DEFAULT_INACTIVE_FREQ_OFF_MID 	844800
-#define DEFAULT_INACTIVE_FREQ_OFF_MAX 	844800
+#define DEFAULT_INACTIVE_FREQ_ON_MIN		806400
+#define DEFAULT_INACTIVE_FREQ_ON_MID		1324800
+#define DEFAULT_INACTIVE_FREQ_ON_MAX		1420800
+#define DEFAULT_INACTIVE_FREQ_OFF_MIN		595200
+#define DEFAULT_INACTIVE_FREQ_OFF_MID		1075200
+#define DEFAULT_INACTIVE_FREQ_OFF_MAX		1190400
 #ifdef CONFIG_POWERSUSPEND
 	unsigned int max_inactive_freq_screen_on;
 	unsigned int max_inactive_freq_screen_off;
@@ -205,7 +205,7 @@ static cpumask_t speedchange_cpumask;
 static spinlock_t speedchange_cpumask_lock;
 
 /* Target load. Lower values result in higher CPU speeds. */
-#define DEFAULT_TARGET_LOAD 90
+#define DEFAULT_TARGET_LOAD 80
 static unsigned int default_target_loads[] = {
   DEFAULT_TARGET_LOAD
 };
