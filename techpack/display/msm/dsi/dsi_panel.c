@@ -654,11 +654,9 @@ static int dsi_panel_update_backlight(struct dsi_panel *panel,
 	/* ASUS BSP Display +++ */
 #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
 	DSI_LOG("[from] set bl=%d\n", bl_lvl);
-	
+
 	if ((bl_dimmer == true) && (bl_lvl == 9))
-		{
 		bl_lvl = bl_min ;
-		}
 	dsi_anakin_record_backlight(bl_lvl);
 	dsi_anakin_set_dimming_smooth(panel, bl_lvl);
 

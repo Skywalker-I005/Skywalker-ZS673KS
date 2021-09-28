@@ -26,7 +26,7 @@ else
 fi
 CLANG_BIN=${PREBUILT}/$PLATFORM/$CLANGVER/bin
 
-cd $BUILDROOT/SAUS-ZS673KS
+cd $BUILDROOT/Skywalker-ZS673KS
 
 echo
 echo "Clean Repository"
@@ -59,11 +59,6 @@ if compgen -G "release/modules/system/vendor/lib/modules/*.ko" > /dev/null; then
 fi
 #find "release/modules/system/vendor/lib/modules" -name "*.ko" -type f -delete
 
-if compgen -G "release/ZS673KS-*-overlay.dtbo" > /dev/null; then
-	rm release/ZS673KS-*-overlay.dtbo;
-fi
-#find "release" -name "ZS673KS-*-overlay.dtbo" -type f -delete
-
 if compgen -G "release/*.zip" > /dev/null; then
 	rm release/*.zip;
 fi
@@ -94,9 +89,9 @@ echo "Set DEFCONFIG"
 echo 
 
 if [ $PLATFORM == "darwin-x86" ]; then
-    make LLVM=1 vendor/SAUS-perf_defconfig
+    make LLVM=1 vendor/skywalker-perf_defconfig
 else
-    make CC=clang AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip vendor/SAUS-perf_defconfig
+    make CC=clang AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip vendor/skywalker-perf_defconfig
 fi
 
 echo
@@ -124,22 +119,20 @@ echo
 
 if [ -f out/arch/arm64/boot/Image ]; then
 	cp -f out/arch/arm64/boot/dtb release/
+    if [ -f out/arch/arm64/boot/dtbo.img ]; then
+        cp -f out/arch/arm64/boot/dtbo.img release/
+    fi
     if [ -f out/arch/arm64/boot/Image.gz ]; then
         cp -f out/arch/arm64/boot/Image.gz release/
     else
         cp -f out/arch/arm64/boot/Image release/
     fi
 	find out -type f -name "*.ko" -exec cp -Rf "{}" release/modules/system/vendor/lib/modules/ \;
-    if [ -f out/arch/arm64/boot/dtbo.img ]; then
-        cp -f out/arch/arm64/boot/dtbo.img release/
-    else
-        find out/arch/arm64/boot/dts/vendor/qcom -type f -name "*.dtbo" -exec cp -Rf "{}" release/ \;
-    fi
 
-	VERSION=$(cat build/firmware_build)
+	# VERSION=$(cat build/firmware_build)
     HASH=$(git rev-parse --short HEAD)
 	
 	cd release
-	zip -r9 "SAUS-ZS673KS-$VERSION-$HASH.zip" * -x *.DS_Store .git* README.md
+	zip -r9 "Skywalker-ZS673KS-$HASH.zip" * -x *.DS_Store .git* README.md
 	cd ../
 fi
