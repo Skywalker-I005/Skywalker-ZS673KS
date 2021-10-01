@@ -106,3 +106,87 @@ ln -s /usr/include/machine/endian.h /usr/local/include/endian.h
 ```
 
 Updated and revised from [Building the android kernel (Mac OS)](https://forum.xda-developers.com/t/tutorial-reference-building-the-android-kernel-mac-os.3856676)
+
+## Additional Notes
+
+Android no longer supports building on Darwin (MacOS), so a few kernel changes may also be required
+
+
+https://github.com/Skywalker-I005/Skywalker-ZS673KS/commit/e9351d4f7f0bb696107c76d2cfde255417fdb0ce
+
+```
+commit e9351d4f7f0bb696107c76d2cfde255417fdb0ce
+Author: Abandoned Cart <t*************a@gmail.com>
+Date:   Tue Sep 14 08:25:02 2021 -0400
+
+    Update build configuration for LLVM
+
+diff --git a/scripts/mod/file2alias.c b/scripts/mod/file2alias.c
+index c91eba751804..e756fd80b721 100644
+--- a/scripts/mod/file2alias.c
++++ b/scripts/mod/file2alias.c
+@@ -38,6 +38,9 @@ typedef struct {
+        __u8 b[16];
+ } guid_t;
+
++#ifdef __APPLE__
++#define uuid_t compat_uuid_t
++#endif
+ /* backwards compatibility, don't use in new code */
+ typedef struct {
+        __u8 b[16];
+```
+
+
+https://github.com/Skywalker-I005/Skywalker-ZS673KS/commit/0a75e7fa46248ff0fd51a77d3cc129ab68aa272b
+
+&nbsp;&nbsp;&nbsp;&nbsp;Patch requires https://github.com/Skywalker-I005/Skywalker-ZS673KS/tree/master/darwin/
+
+```
+commit 0a75e7fa46248ff0fd51a77d3cc129ab68aa272b
+Author: Abandoned Cart <t*************a@gmail.com>
+Date:   Mon Jun 14 12:22:22 2021 -0400
+
+    Include Darwin header workaround
+
+diff --git a/Makefile b/Makefile
+index d34ea45a503e..ce1deda42be9 100644
+--- a/Makefile
++++ b/Makefile
+@@ -408,6 +408,9 @@ endif
+ KBUILD_HOSTCFLAGS   := -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 \
+                -fomit-frame-pointer -std=gnu89 $(HOST_LFS_CFLAGS) \
+                $(HOSTCFLAGS)
++ifeq ($(shell uname),Darwin)
++KBUILD_HOSTCFLAGS    += -I$(srctree)/darwin/include
++endif
+ KBUILD_HOSTCXXFLAGS := -O2 $(HOST_LFS_CFLAGS) $(HOSTCXXFLAGS)
+ KBUILD_HOSTLDFLAGS  := $(HOST_LFS_LDFLAGS) $(HOSTLDFLAGS)
+ KBUILD_HOSTLDLIBS   := $(HOST_LFS_LIBS) $(HOSTLDLIBS)
+```
+
+
+https://github.com/Skywalker-I005/Skywalker-ZS673KS/commit/7dbd0a3fc84d93822c3f677675a1e33585f18f89
+
+```
+commit 7dbd0a3fc84d93822c3f677675a1e33585f18f89
+Author: Abandoned Cart <t*************a@gmail.com>
+Date:   Tue Sep 14 06:13:50 2021 -0400
+
+    openssl requires direct reference
+
+diff --git a/scripts/Makefile b/scripts/Makefile
+index b4b7d8b58cd6..cc2c2580e480 100644
+--- a/scripts/Makefile
++++ b/scripts/Makefile
+@@ -10,6 +10,10 @@
+
+ HOST_EXTRACFLAGS += -I$(srctree)/tools/include
+
++ifeq ($(shell uname),Darwin)
++HOST_EXTRACFLAGS += -I/usr/local/opt/openssl@1.1/include -L/usr/local/opt/openssl@1.1/lib
++endif
++
+ CRYPTO_LIBS = $(shell pkg-config --libs libcrypto 2> /dev/null || echo -lcrypto)
+ CRYPTO_CFLAGS = $(shell pkg-config --cflags libcrypto 2> /dev/null)
+```
