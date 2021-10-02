@@ -1,3 +1,12 @@
 [submodule "release"]
 	path = release
 	url = git@gitlab.com:twistedumbrella/AnyKernel3.git
+[submodule "techpack/display"]
+	path = techpack/display
+	url = git@github.com:Skywalker-I005/qcom_techpack_display.git
+[submodule "techpack/camera"]
+	path = techpack/camera
+	url = git@github.com:Skywalker-I005/qcom_techpack_camera.git
+[submodule "techpack/video"]
+	path = techpack/video
+	url = git@github.com:Skywalker-I005/qcom_techpack_video.git
