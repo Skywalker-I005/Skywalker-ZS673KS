@@ -86,7 +86,7 @@ fi
 
 echo
 echo "Set DEFCONFIG"
-echo 
+echo
 
 if [ $PLATFORM == "darwin-x86" ]; then
     make LLVM=1 vendor/skywalker-perf_defconfig
@@ -118,7 +118,7 @@ echo "Package Kernel"
 echo
 
 if [ -f out/arch/arm64/boot/Image ]; then
-	cp -f out/arch/arm64/boot/dtb release/
+    cp -f out/arch/arm64/boot/dtb release/
     if [ -f out/arch/arm64/boot/dtbo.img ]; then
         cp -f out/arch/arm64/boot/dtbo.img release/
     fi
@@ -127,12 +127,16 @@ if [ -f out/arch/arm64/boot/Image ]; then
     else
         cp -f out/arch/arm64/boot/Image release/
     fi
-	find out -type f -name "*.ko" -exec cp -Rf "{}" release/modules/system/vendor/lib/modules/ \;
+    find out -type f -name "*.ko" -exec cp -Rf "{}" release/modules/system/vendor/lib/modules/ \;
 
-	# VERSION=$(cat build/firmware_build)
+    # VERSION=$(cat build/firmware_build)
     HASH=$(git rev-parse --short HEAD)
-	
-	cd release
-	zip -r9 "Skywalker-ZS673KS-$HASH.zip" * -x *.DS_Store .git* README.md
-	cd ../
+
+    cd release
+    zip -r9 "Skywalker-ZS673KS-$HASH.zip" * -x *.DS_Store .git* README.md --exclude=modules/META-INF* modules/module.prop
+    
+    cd modules
+    zip -r9 "../Skywalker-ZS673KS-Modules-$HASH.zip" * -x *.DS_Store .git* README.md
+    
+    cd ../../
 fi
