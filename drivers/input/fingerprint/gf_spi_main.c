@@ -809,7 +809,7 @@ static int gf_probe(struct platform_device *pdev)
 
 	wake_lock_init(&fp_wakelock, &gf_dev->spi->dev, "fp_wakelock");
 	status = request_threaded_irq(gf_dev->irq, NULL, gf_irq,
-			IRQF_TRIGGER_RISING | IRQF_ONESHOT | IRQF_PERF_CRITICAL,
+			IRQF_TRIGGER_RISING | IRQF_ONESHOT,
 			"gf", gf_dev);
 
 	if (status) {

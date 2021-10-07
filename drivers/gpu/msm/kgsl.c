@@ -4428,8 +4428,8 @@ int kgsl_request_irq(struct platform_device *pdev, const  char *name,
 	if (num < 0)
 		return num;
 
-	ret = devm_request_irq(&pdev->dev, num, handler,
-		IRQF_TRIGGER_HIGH | IRQF_PERF_CRITICAL, name, data);
+	ret = devm_request_irq(&pdev->dev, num, handler, IRQF_TRIGGER_HIGH,
+		name, data);
 
 	if (ret)
 		dev_err(&pdev->dev, "Unable to get interrupt %s: %d\n",
@@ -4623,7 +4623,7 @@ static long kgsl_run_one_worker(struct kthread_worker *worker,
 		struct task_struct **thread, const char *name)
 {
 	kthread_init_worker(worker);
-	*thread = kthread_run_perf_critical(kthread_worker_fn, worker, name);
+	*thread = kthread_run(kthread_worker_fn, worker, name);
 	if (IS_ERR(*thread)) {
 		pr_err("unable to start %s\n", name);
 		return PTR_ERR(thread);
