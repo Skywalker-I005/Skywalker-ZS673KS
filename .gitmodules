@@ -10,3 +10,6 @@
 [submodule "techpack/video"]
 	path = techpack/video
 	url = git@github.com:Skywalker-I005/qcom_techpack_video.git
+[submodule "techpack/audio"]
+	path = techpack/audio
+	url = git@github.com:Skywalker-I005/qcom_techpack_audio.git

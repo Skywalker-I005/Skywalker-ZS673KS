@@ -36,6 +36,23 @@ make clean & make mrproper
 git checkout -- *.i
 #git clean -xfd # failsafe
 
+cd techpack/audio
+git fetch
+git reset --hard origin
+cd $BUILDROOT/Skywalker-ZS673KS
+cd techpack/camera
+git fetch
+git reset --hard origin
+cd $BUILDROOT/Skywalker-ZS673KS
+cd techpack/display
+git fetch
+git reset --hard origin
+cd $BUILDROOT/Skywalker-ZS673KS
+cd techpack/video
+git fetch
+git reset --hard origin
+cd $BUILDROOT/Skywalker-ZS673KS
+
 find . -name "*.orig" -type f -delete
 
 if [ -d out ]; then
