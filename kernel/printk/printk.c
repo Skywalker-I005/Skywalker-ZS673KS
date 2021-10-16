@@ -2201,13 +2201,13 @@ int vprintk_store(int facility, int level,
 	if (dict)
 		lflags |= LOG_NEWLINE;
 
-#ifdef CONFIG_ASUS_POWER_DEBUG
 #if defined ASUS_ZS673KS_PROJECT || defined ASUS_PICASSO_PROJECT
 	if (is_logging_to_asus_buffer) {
 		   write_to_asus_log_buffer(text, text_len, lflags);
 	}
 #endif
 
+#ifdef CONFIG_ASUS_POWER_DEBUG
 	return log_output(facility, level, lflags,
 			  dict, dictlen, text, text_len,ts);
 #else
@@ -3666,7 +3666,6 @@ EXPORT_SYMBOL_GPL(kmsg_dump_rewind);
 
 #endif
 
-#ifdef CONFIG_ASUS_POWER_DEBUG
 void printk_buffer_rebase(void)
 {
 /*
@@ -3689,7 +3688,6 @@ void printk_buffer_rebase(void)
 	//memset_nc(asus_log_buf, 0, PRINTK_BUFFER_SLOT_SIZE);
 
 	is_logging_to_asus_buffer = true;
-#endif
 }
 EXPORT_SYMBOL(printk_buffer_rebase);
 #endif
