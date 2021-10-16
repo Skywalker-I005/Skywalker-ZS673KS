@@ -40,8 +40,8 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/cpufreq_raccoon_city.h>
 
-#ifdef CONFIG_POWERSUSPEND
-#include <linux/powersuspend.h>
+#ifdef CONFIG_HAS_EARLYSUSPEND
+#include <linux/earlysuspend.h>
 #endif
 
 #define gov_attr_ro(_name)						\
@@ -154,7 +154,7 @@ struct raccoon_city_tunables {
 #define DEFAULT_INACTIVE_FREQ_OFF_MIN		595200
 #define DEFAULT_INACTIVE_FREQ_OFF_MID		1075200
 #define DEFAULT_INACTIVE_FREQ_OFF_MAX		1190400
-#ifdef CONFIG_POWERSUSPEND
+#ifdef CONFIG_HAS_EARLYSUSPEND
 	unsigned int max_inactive_freq_screen_on;
 	unsigned int max_inactive_freq_screen_off;
 #endif
@@ -1039,7 +1039,7 @@ static ssize_t store_io_is_busy(struct gov_attr_set *attr_set, const char *buf,
 	return count;
 }
 
-#ifdef CONFIG_POWERSUSPEND
+#ifdef CONFIG_HAS_EARLYSUSPEND
 static ssize_t store_max_inactive_freq_screen_on(struct gov_attr_set *attr_set,
 				const char *buf, size_t count)
 {
@@ -1099,7 +1099,7 @@ show_one(timer_slack, "%lu");
 show_one(boost, "%u");
 show_one(boostpulse_duration, "%u");
 show_one(io_is_busy, "%u");
-#ifdef CONFIG_POWERSUSPEND
+#ifdef CONFIG_HAS_EARLYSUSPEND
 show_one(max_inactive_freq_screen_on, "%d");
 show_one(max_inactive_freq_screen_off, "%d");
 #endif
@@ -1116,7 +1116,7 @@ gov_attr_rw(boost);
 gov_attr_wo(boostpulse);
 gov_attr_rw(boostpulse_duration);
 gov_attr_rw(io_is_busy);
-#ifdef CONFIG_POWERSUSPEND
+#ifdef CONFIG_HAS_EARLYSUSPEND
 gov_attr_rw(max_inactive_freq_screen_on);
 gov_attr_rw(max_inactive_freq_screen_off);
 #endif
@@ -1134,7 +1134,7 @@ static struct attribute *raccoon_city_attributes[] = {
 	&boostpulse.attr,
 	&boostpulse_duration.attr,
 	&io_is_busy.attr,
-#ifdef CONFIG_POWERSUSPEND
+#ifdef CONFIG_HAS_EARLYSUSPEND
 	&max_inactive_freq_screen_on.attr,
 	&max_inactive_freq_screen_off.attr,
 #endif
@@ -1332,7 +1332,7 @@ int cpufreq_raccoon_city_init(struct cpufreq_policy *policy)
 		tunables->boostpulse_duration = DEFAULT_MIN_SAMPLE_TIME_MIN;
 		tunables->sampling_rate = DEFAULT_SAMPLING_RATE_MIN;
 		tunables->timer_slack = DEFAULT_TIMER_SLACK_MIN;
-#ifdef CONFIG_POWERSUSPEND
+#ifdef CONFIG_HAS_EARLYSUSPEND
 		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON_MIN;
 		tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF_MIN;
 #endif
@@ -1345,7 +1345,7 @@ int cpufreq_raccoon_city_init(struct cpufreq_policy *policy)
 		tunables->boostpulse_duration = DEFAULT_MIN_SAMPLE_TIME_MID;
 		tunables->sampling_rate = DEFAULT_SAMPLING_RATE_MID;
 		tunables->timer_slack = DEFAULT_TIMER_SLACK_MID;
-#ifdef CONFIG_POWERSUSPEND
+#ifdef CONFIG_HAS_EARLYSUSPEND
 		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON_MID;
 		tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF_MID;
 #endif
@@ -1358,7 +1358,7 @@ int cpufreq_raccoon_city_init(struct cpufreq_policy *policy)
 		tunables->boostpulse_duration = DEFAULT_MIN_SAMPLE_TIME_MAX;
 		tunables->sampling_rate = DEFAULT_SAMPLING_RATE_MAX;
 		tunables->timer_slack = DEFAULT_TIMER_SLACK_MAX;
-#ifdef CONFIG_POWERSUSPEND
+#ifdef CONFIG_HAS_EARLYSUSPEND
 		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON_MAX;
 		tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF_MAX;
 #endif
@@ -1515,8 +1515,8 @@ static struct raccoon_city_governor raccoon_city_gov = {
 	}
 };
 
-#ifdef CONFIG_POWERSUSPEND
-static void cpufreq_raccoon_city_power_suspend(struct power_suspend *h)
+#ifdef CONFIG_HAS_EARLYSUSPEND
+static void cpufreq_raccoon_city_power_suspend(struct early_suspend *h)
 {
 	mutex_lock(&gov_lock);
 	if (tunables->max_inactive_freq_screen_off != tunables->max_inactive_freq) {
@@ -1525,7 +1525,7 @@ static void cpufreq_raccoon_city_power_suspend(struct power_suspend *h)
 	mutex_unlock(&gov_lock);
 }
 
-static void cpufreq_raccoon_city_power_resume(struct power_suspend *h)
+static void cpufreq_raccoon_city_power_resume(struct early_suspend *h)
 {
 	mutex_lock(&gov_lock);
 	if (tunables->max_inactive_freq_screen_on != tunables->max_inactive_freq) {
@@ -1534,9 +1534,10 @@ static void cpufreq_raccoon_city_power_resume(struct power_suspend *h)
 	mutex_unlock(&gov_lock);
 }
 
-static struct power_suspend cpufreq_raccoon_city_power_suspend_info = {
-	.suspend = cpufreq_raccoon_city_power_suspend,
-	.resume = cpufreq_raccoon_city_power_resume,
+static struct early_suspend cpufreq_raccoon_city_power_suspend_info = {
+	.level		= EARLY_SUSPEND_LEVEL_BLANK_SCREEN,
+	.suspend 	= cpufreq_raccoon_city_power_suspend,
+	.resume 	= cpufreq_raccoon_city_power_resume,
 };
 #endif
 
@@ -1581,8 +1582,8 @@ static int __init cpufreq_raccoon_city_gov_init(void)
 	/* wake up so the thread does not look hung to the freezer */
 	wake_up_process(speedchange_task);
 
-#ifdef CONFIG_POWERSUSPEND
-	register_power_suspend(&cpufreq_raccoon_city_power_suspend_info);
+#ifdef CONFIG_HAS_EARLYSUSPEND
+	register_early_suspend(&cpufreq_raccoon_city_power_suspend_info);
 #endif
 	return cpufreq_register_governor(CPU_FREQ_GOV_RACCOON_CITY);
 }

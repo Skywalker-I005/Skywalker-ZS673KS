@@ -45,8 +45,8 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/cpufreq_umbrella_core.h>
 
-#ifdef CONFIG_POWERSUSPEND
-#include <linux/powersuspend.h>
+#ifdef CONFIG_HAS_EARLYSUSPEND
+#include <linux/earlysuspend.h>
 #endif
 
 #define CONFIG_UC_MODE_AUTO_CHANGE
@@ -197,7 +197,7 @@ struct umbrella_core_tunables {
 #define DEFAULT_INACTIVE_FREQ_OFF_MIN		595200
 #define DEFAULT_INACTIVE_FREQ_OFF_MID		1075200
 #define DEFAULT_INACTIVE_FREQ_OFF_MAX		1190400
-#ifdef CONFIG_POWERSUSPEND
+#ifdef CONFIG_HAS_EARLYSUSPEND
 	unsigned int max_inactive_freq_screen_on;
 	unsigned int max_inactive_freq_screen_off;
 #endif
@@ -1570,7 +1570,7 @@ static ssize_t store_sync_freq(struct gov_attr_set *attr_set,
 show_one(sync_freq, "%u");
 gov_attr_rw(sync_freq);
 
-#ifdef CONFIG_POWERSUSPEND
+#ifdef CONFIG_HAS_EARLYSUSPEND
 static ssize_t store_max_inactive_freq_screen_on(struct gov_attr_set *attr_set,
 				  const char *buf, size_t count)
 {
@@ -1795,7 +1795,7 @@ static struct attribute *umbrella_core_attributes[] = {
 #ifdef CONFIG_UC_MODE_AUTO_CHANGE_BOOST
 	&bimc_hispeed_freq_attr.attr,
 #endif
-#ifdef CONFIG_POWERSUSPEND
+#ifdef CONFIG_HAS_EARLYSUSPEND
     &max_inactive_freq_screen_on.attr,
     &max_inactive_freq_screen_off.attr,
 #endif
@@ -1947,7 +1947,7 @@ int cpufreq_umbrella_core_init(struct cpufreq_policy *policy)
 		tunables->boostpulse_duration = DEFAULT_MIN_SAMPLE_TIME_MIN;
 		tunables->timer_rate = DEFAULT_TIMER_RATE_MIN;
 		tunables->timer_slack = DEFAULT_TIMER_SLACK_MIN;
-#ifdef CONFIG_POWERSUSPEND
+#ifdef CONFIG_HAS_EARLYSUSPEND
 		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON_MIN;
 		tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF_MIN;
 #endif
@@ -1960,7 +1960,7 @@ int cpufreq_umbrella_core_init(struct cpufreq_policy *policy)
 		tunables->boostpulse_duration = DEFAULT_MIN_SAMPLE_TIME_MID;
 		tunables->timer_rate = DEFAULT_TIMER_RATE_MID;
 		tunables->timer_slack = DEFAULT_TIMER_SLACK_MID;
-#ifdef CONFIG_POWERSUSPEND
+#ifdef CONFIG_HAS_EARLYSUSPEND
 		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON_MID;
 		tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF_MID;
 #endif
@@ -1973,7 +1973,7 @@ int cpufreq_umbrella_core_init(struct cpufreq_policy *policy)
 		tunables->boostpulse_duration = DEFAULT_MIN_SAMPLE_TIME_MAX;
 		tunables->timer_rate = DEFAULT_TIMER_RATE_MAX;
 		tunables->timer_slack = DEFAULT_TIMER_SLACK_MAX;
-#ifdef CONFIG_POWERSUSPEND
+#ifdef CONFIG_HAS_EARLYSUSPEND
 		tunables->max_inactive_freq_screen_on = DEFAULT_INACTIVE_FREQ_ON_MAX;
 		tunables->max_inactive_freq_screen_off = DEFAULT_INACTIVE_FREQ_OFF_MAX;
 #endif
@@ -2219,8 +2219,8 @@ void cpufreq_umbrella_core_limits(struct cpufreq_policy *policy)
   }
 }
 
-#ifdef CONFIG_POWERSUSPEND
-static void cpufreq_umbrella_core_power_suspend(struct power_suspend *h)
+#ifdef CONFIG_HAS_EARLYSUSPEND
+static void cpufreq_umbrella_core_power_suspend(struct early_suspend *h)
 {
     mutex_lock(&gov_lock);
     if (tunables->max_inactive_freq_screen_off != tunables->max_inactive_freq) {
@@ -2229,7 +2229,7 @@ static void cpufreq_umbrella_core_power_suspend(struct power_suspend *h)
     mutex_unlock(&gov_lock);
 }
 
-static void cpufreq_umbrella_core_power_resume(struct power_suspend *h)
+static void cpufreq_umbrella_core_power_resume(struct early_suspend *h)
 {
     mutex_lock(&gov_lock);
     if (tunables->max_inactive_freq_screen_on != tunables->max_inactive_freq) {
@@ -2238,9 +2238,10 @@ static void cpufreq_umbrella_core_power_resume(struct power_suspend *h)
     mutex_unlock(&gov_lock);
 }
 
-static struct power_suspend cpufreq_umbrella_core_power_suspend_info = {
-    .suspend = cpufreq_umbrella_core_power_suspend,
-    .resume = cpufreq_umbrella_core_power_resume,
+static struct early_suspend cpufreq_umbrella_core_power_suspend_info = {
+    .level		= EARLY_SUSPEND_LEVEL_BLANK_SCREEN,
+    .suspend  = cpufreq_umbrella_core_power_suspend,
+    .resume   = cpufreq_umbrella_core_power_resume,
 };
 #endif
 
@@ -2292,8 +2293,8 @@ static int __init cpufreq_umbrella_core_gov_init(void)
 
 	/* NB: wake up so the thread does not look hung to the freezer */
 	wake_up_process(speedchange_task);
-#ifdef CONFIG_POWERSUSPEND
-    register_power_suspend(&cpufreq_umbrella_core_power_suspend_info);
+#ifdef CONFIG_HAS_EARLYSUSPEND
+    register_early_suspend(&cpufreq_umbrella_core_power_suspend_info);
 #endif
 	return cpufreq_register_governor(CPU_FREQ_GOV_UMBRELLA_CORE);
 }
