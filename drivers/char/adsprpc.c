@@ -1202,9 +1202,8 @@ static int fastrpc_mmap_remove(struct fastrpc_file *fl, int fd, uintptr_t va,
 	hlist_for_each_entry_safe(map, n, &me->maps, hn) {
 		if (map->refs == 1 && map->raddr == va &&
 			map->raddr + map->len == va + len &&
-			map->refs == 1 && !map->is_persistent &&
-                         /*Remove map if not used in process initialization*/
-                         !map->is_filemap) {
+			/*Remove map if not used in process initialization*/
+			!map->is_persistent && !map->is_filemap) {
 			match = map;
 			hlist_del_init(&map->hn);
 			break;
@@ -1218,9 +1217,8 @@ static int fastrpc_mmap_remove(struct fastrpc_file *fl, int fd, uintptr_t va,
 	hlist_for_each_entry_safe(map, n, &fl->maps, hn) {
 		if (map->refs == 1 && map->raddr == va &&
 			map->raddr + map->len == va + len &&
-			map->refs == 1 &&
-                      /*Remove map if not used in process initializaton*/
-                      !map->is_filemap) {
+			/*Remove map if not used in process initialization*/
+			!map->is_filemap) {
 			match = map;
 			hlist_del_init(&map->hn);
 			break;
