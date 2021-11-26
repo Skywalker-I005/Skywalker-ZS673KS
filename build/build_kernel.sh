@@ -152,8 +152,9 @@ if [ -f out/arch/arm64/boot/Image ]; then
     cd release
     zip -r9 "Skywalker-ZS673KS-$HASH.zip" * -x *.DS_Store .git* README.md --exclude=modules/META-INF* modules/module.prop
     
-    cd modules
-    zip -r9 "../Skywalker-ZS673KS-Modules-$HASH.zip" * -x *.DS_Store .git* README.md
+    # cd modules
+    # zip -r9 "../Skywalker-ZS673KS-Modules-$HASH.zip" * -x *.DS_Store .git* README.md
     
-    cd ../../
+    # cd ../../
+    cd ../
 fi
