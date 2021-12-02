@@ -1,6 +1,6 @@
 [submodule "release"]
 	path = release
-	url = git@gitlab.com:twistedumbrella/AnyKernel3.git
+	url = git@gitlab.com:Skywalker-I005/AnyKernel3.git
 [submodule "techpack/display"]
 	path = techpack/display
 	url = git@github.com:Skywalker-I005/qcom_techpack_display.git
