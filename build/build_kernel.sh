@@ -38,19 +38,19 @@ git checkout -- *.i
 
 cd techpack/audio
 git fetch
-git reset --hard origin
+git reset --hard origin/ZS673KS
 cd $BUILDROOT/Skywalker-ZS673KS
 cd techpack/camera
 git fetch
-git reset --hard origin
+git reset --hard origin/ZS673KS
 cd $BUILDROOT/Skywalker-ZS673KS
 cd techpack/display
 git fetch
-git reset --hard origin
+git reset --hard origin/ZS673KS
 cd $BUILDROOT/Skywalker-ZS673KS
 cd techpack/video
 git fetch
-git reset --hard origin
+git reset --hard origin/ZS673KS
 cd $BUILDROOT/Skywalker-ZS673KS
 
 find . -name "*.orig" -type f -delete
