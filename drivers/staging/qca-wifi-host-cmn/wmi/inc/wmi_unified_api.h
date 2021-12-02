@@ -32,6 +32,7 @@
 #include "wlan_mgmt_txrx_utils_api.h"
 #include <wlan_dfs_public_struct.h>
 #include <wlan_crypto_global_def.h>
+#include "wlan_thermal_public_struct.h"
 #ifdef WLAN_POWER_MANAGEMENT_OFFLOAD
 #include "wmi_unified_pmo_api.h"
 #endif
@@ -857,6 +858,26 @@ wmi_unified_vdev_set_nac_rssi_send(wmi_unified_t wmi_handle,
 QDF_STATUS
 wmi_unified_vdev_set_param_send(wmi_unified_t wmi_handle,
 				struct vdev_set_params *param);
+
+#ifdef WLAN_FEATURE_ROAM_OFFLOAD
+/**
+ * wmi_unified_roam_set_param_send() - WMI roam set parameter function
+ * @wmi_handle: handle to WMI.
+ * @roam_param: pointer to hold roam set parameter
+ *
+ * Return: QDF_STATUS_SUCCESS on success and QDF_STATUS_E_FAILURE for failure
+ */
+QDF_STATUS
+wmi_unified_roam_set_param_send(wmi_unified_t wmi_handle,
+				struct vdev_set_params *roam_param);
+#else
+static inline QDF_STATUS
+wmi_unified_roam_set_param_send(wmi_unified_t wmi_handle,
+				struct vdev_set_params *roam_param)
+{
+	return QDF_STATUS_SUCCESS;
+}
+#endif
 
 /**
  * wmi_unified_sifs_trigger_send() - WMI vdev sifs trigger parameter function
@@ -2965,13 +2986,19 @@ wmi_extract_chan_stats(wmi_unified_t wmi_handle, void *evt_buf,
  * @wmi_handle: wmi handle
  * @evt_buf: Pointer to event buffer
  * @temp: Pointer to hold extracted temperature
- * @level: Pointer to hold extracted level
+ * @level: Pointer to hold extracted level in host enum
+ * @therm_throt_levels: Pointer to hold extracted number of level in thermal
+ *                      stats
+ * @tt_lvl_stats_event: Pointer to hold extracted thermal stats for each level
  * @pdev_id: Pointer to hold extracted pdev_id
  *
  * Return: QDF_STATUS_SUCCESS on success and QDF_STATUS_E_FAILURE for failure
  */
 QDF_STATUS wmi_extract_thermal_stats(wmi_unified_t wmi_handle, void *evt_buf,
-				     uint32_t *temp, uint32_t *level,
+				     uint32_t *temp,
+				     enum thermal_throttle_level *level,
+				     uint32_t *therm_throt_levels,
+				     struct thermal_throt_level_stats *tt_stats,
 				     uint32_t *pdev_id);
 
 /**

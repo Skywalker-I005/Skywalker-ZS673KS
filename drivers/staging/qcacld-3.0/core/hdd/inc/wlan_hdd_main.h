@@ -1224,6 +1224,7 @@ struct hdd_context;
  * @delete_in_progress: Flag to indicate that the adapter delete is in
  *			progress, and any operation using rtnl lock inside
  *			the driver can be avoided/skipped.
+ * @mon_adapter: hdd_adapter of monitor mode.
  */
 struct hdd_adapter {
 	/* Magic cookie for adapter sanity verification.  Note that this
@@ -1539,6 +1540,9 @@ struct hdd_adapter {
 #endif
 	bool delete_in_progress;
 	qdf_atomic_t net_dev_hold_ref_count[NET_DEV_HOLD_ID_MAX];
+#ifdef WLAN_FEATURE_PKT_CAPTURE
+	struct hdd_adapter *mon_adapter;
+#endif
 };
 
 #define WLAN_HDD_GET_STATION_CTX_PTR(adapter) (&(adapter)->session.station)
@@ -1931,6 +1935,7 @@ struct hdd_context {
 	/** P2P Device MAC Address for the adapter  */
 	struct qdf_mac_addr p2p_device_address;
 
+	qdf_wake_lock_t rx_wake_lock;
 	qdf_wake_lock_t sap_wake_lock;
 
 	/* Flag keeps track of wiphy suspend/resume */
@@ -2212,6 +2217,9 @@ struct hdd_context {
 	qdf_work_t twt_en_dis_work;
 #endif
 	bool dump_in_progress;
+#ifdef THERMAL_STATS_SUPPORT
+	bool is_therm_stats_in_progress;
+#endif
 };
 
 /**
@@ -3345,6 +3353,20 @@ int hdd_update_acs_timer_reason(struct hdd_adapter *adapter, uint8_t reason);
  */
 void hdd_switch_sap_channel(struct hdd_adapter *adapter, uint8_t channel,
 			    bool forced);
+
+/**
+ * hdd_switch_sap_chan_freq() - Move SAP to the given channel
+ * @adapter: AP adapter
+ * @chan_freq: Channel frequency
+ * @forced: Force to switch channel, ignore SCC/MCC check
+ *
+ * Moves the SAP interface by invoking the function which
+ * executes the callback to perform channel switch using (E)CSA.
+ *
+ * Return: None
+ */
+void hdd_switch_sap_chan_freq(struct hdd_adapter *adapter, qdf_freq_t chan_freq,
+			      bool forced);
 
 #if defined(FEATURE_WLAN_CH_AVOID)
 void hdd_unsafe_channel_restart_sap(struct hdd_context *hdd_ctx);
@@ -4715,6 +4737,22 @@ void wlan_hdd_del_monitor(struct hdd_context *hdd_ctx,
 void
 wlan_hdd_del_p2p_interface(struct hdd_context *hdd_ctx);
 
+/**
+ * hdd_reset_monitor_interface() - reset monitor interface flags
+ * @sta_adapter: station adapter
+ *
+ * Return: void
+ */
+void hdd_reset_monitor_interface(struct hdd_adapter *sta_adapter);
+
+/**
+ * hdd_is_pkt_capture_mon_enable() - Is packet capture monitor mode enable
+ * @sta_adapter: station adapter
+ *
+ * Return: status of packet capture monitor adapter
+ */
+struct hdd_adapter *
+hdd_is_pkt_capture_mon_enable(struct hdd_adapter *sta_adapter);
 #else
 static inline
 void wlan_hdd_del_monitor(struct hdd_context *hdd_ctx,
@@ -4731,6 +4769,15 @@ bool wlan_hdd_is_mon_concurrency(void)
 static inline
 void wlan_hdd_del_p2p_interface(struct hdd_context *hdd_ctx)
 {
+}
+
+static inline void hdd_reset_monitor_interface(struct hdd_adapter *sta_adapter)
+{
+}
+
+static inline int hdd_is_pkt_capture_mon_enable(struct hdd_adapter *adapter)
+{
+	return 0;
 }
 #endif /* WLAN_FEATURE_PKT_CAPTURE */
 /**
