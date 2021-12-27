@@ -146,7 +146,6 @@ if [ -f out/arch/arm64/boot/Image ]; then
     fi
     find out -type f -name "*.ko" -exec cp -Rf "{}" release/modules/system/vendor/lib/modules/ \;
 
-    # VERSION=$(cat build/firmware_build)
     HASH=$(git rev-parse --short HEAD)
 
     cd release
