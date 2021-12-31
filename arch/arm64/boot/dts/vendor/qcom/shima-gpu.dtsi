@@ -45,7 +45,6 @@
 		qcom,chipid = <0x06060010>;
 
 		/*qcom,no-nap;*/
-		qcom,disable-wake-on-touch;
 
 		qcom,highest-bank-bit = <15>;
 		qcom,min-access-length = <32>;

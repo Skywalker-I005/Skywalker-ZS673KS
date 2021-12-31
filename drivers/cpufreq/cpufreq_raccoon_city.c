@@ -148,12 +148,12 @@ struct raccoon_city_tunables {
 		* Devices that support powersuspend will also consider current
 		* screen state in determining the maximum frequency values.
 	  */
-#define DEFAULT_INACTIVE_FREQ_ON_MIN		998400
-#define DEFAULT_INACTIVE_FREQ_ON_MID		1555200
-#define DEFAULT_INACTIVE_FREQ_ON_MAX		1670400
-#define DEFAULT_INACTIVE_FREQ_OFF_MIN		806400
-#define DEFAULT_INACTIVE_FREQ_OFF_MID		1324800
-#define DEFAULT_INACTIVE_FREQ_OFF_MAX		1420800
+#define DEFAULT_INACTIVE_FREQ_ON_MIN		1209600
+#define DEFAULT_INACTIVE_FREQ_ON_MID		1766400
+#define DEFAULT_INACTIVE_FREQ_ON_MAX		1900800
+#define DEFAULT_INACTIVE_FREQ_OFF_MIN		902400
+#define DEFAULT_INACTIVE_FREQ_OFF_MID		1440000
+#define DEFAULT_INACTIVE_FREQ_OFF_MAX		1555200
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	unsigned int max_inactive_freq_screen_on;
 	unsigned int max_inactive_freq_screen_off;

@@ -50,7 +50,6 @@
 		qcom,initial-pwrlevel = <5>;
 
 		/*qcom,no-nap;*/
-		qcom,disable-wake-on-touch;
 
 		qcom,highest-bank-bit = <16>;
 
