@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2015-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015-2021, The Linux Foundation. All rights reserved.
  */
 #include <linux/err.h>
 #include <linux/seq_file.h>
@@ -14,6 +14,8 @@
 
 void *icnss_ipc_log_context;
 void *icnss_ipc_log_long_context;
+void *icnss_ipc_log_smp2p_context;
+void *icnss_ipc_soc_wake_context;
 
 static ssize_t icnss_regwrite_write(struct file *fp,
 				    const char __user *user_buf,
@@ -410,6 +412,9 @@ static int icnss_stats_show_state(struct seq_file *s, struct icnss_priv *priv)
 			continue;
 		case ICNSS_COLD_BOOT_CAL:
 			seq_puts(s, "COLD BOOT CALIBRATION");
+			continue;
+		case ICNSS_QMI_DMS_CONNECTED:
+			seq_puts(s, "DMS_CONNECTED");
 		}
 
 		seq_printf(s, "UNKNOWN-%d", i);
@@ -761,7 +766,7 @@ static int icnss_control_params_debug_show(struct seq_file *s, void *data)
 
 	seq_puts(s, "\nCurrent value:\n");
 
-	seq_printf(s, "qmi_timeout: %u\n", jiffies_to_msecs(priv->ctrl_params.qmi_timeout));
+	seq_printf(s, "qmi_timeout: %u\n", priv->ctrl_params.qmi_timeout);
 
 	return 0;
 }
@@ -849,6 +854,17 @@ void icnss_debug_init(void)
 						       "icnss_long", 0);
 	if (!icnss_ipc_log_long_context)
 		icnss_pr_err("Unable to create log long context\n");
+
+	icnss_ipc_log_smp2p_context = ipc_log_context_create(NUM_LOG_LONG_PAGES,
+						       "icnss_smp2p", 0);
+	if (!icnss_ipc_log_smp2p_context)
+		icnss_pr_err("Unable to create log smp2p context\n");
+
+	icnss_ipc_soc_wake_context = ipc_log_context_create(NUM_LOG_LONG_PAGES,
+						       "icnss_soc_wake", 0);
+	if (!icnss_ipc_soc_wake_context)
+		icnss_pr_err("Unable to create log soc_wake context\n");
+
 }
 
 void icnss_debug_deinit(void)
@@ -861,5 +877,15 @@ void icnss_debug_deinit(void)
 	if (icnss_ipc_log_long_context) {
 		ipc_log_context_destroy(icnss_ipc_log_long_context);
 		icnss_ipc_log_long_context = NULL;
+	}
+
+	if (icnss_ipc_log_smp2p_context) {
+		ipc_log_context_destroy(icnss_ipc_log_smp2p_context);
+		icnss_ipc_log_smp2p_context = NULL;
+	}
+
+	if (icnss_ipc_soc_wake_context) {
+		ipc_log_context_destroy(icnss_ipc_soc_wake_context);
+		icnss_ipc_soc_wake_context = NULL;
 	}
 }
