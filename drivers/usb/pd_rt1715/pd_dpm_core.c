@@ -263,7 +263,7 @@ void pd_dpm_start_pps_request_thread(struct pd_port *pd_port, bool en)
 		wake_up_interruptible(&pd_port->pps_request_event_queue);
 	} else {
 		pd_port->pps_request_stop = true;
-		atomic_set(&pd_port->pps_request_event, 1);
+		atomic_set(&pd_port->pps_request_event, 0);
 		__pm_relax(pd_port->pps_request_wake_lock);
 	}
 }
@@ -313,6 +313,23 @@ static bool dpm_build_request_info_pdo(
 			pd_port->pe_data.local_selected_cap = i + 1;
 		}
 	}
+
+//ASUS +++
+	if (g_info != NULL && pd_port->pe_pd_state == PE_SNK_READY && (charging_policy & DPM_CHARGING_POLICY_MASK)!= DPM_CHARGING_POLICY_PPS) {
+		req_info->pos = g_info->select_pos + 1;
+		req_info->type = PDO_TYPE_VAL(src_cap->pdos[g_info->select_pos]);
+		req_info->vmax = g_info->rdo_mv;
+		req_info->vmin = g_info->rdo_mv;
+		req_info->max_ma = g_info->rdo_ma;
+		req_info->oper_ma = g_info->rdo_ma;
+		req_info->mismatch = 0;
+
+		pr_info("[PD] %s Find SrcCap%d(%s): mv = %d ma = %d policy = 0x%x\n", __func__, 
+			req_info->pos, req_info->mismatch ? "Mismatch" : "Match", req_info->vmax, req_info->max_ma, charging_policy);
+
+		find_cap = true;
+	}
+//ASUS ---
 
 	return max_uw > 0;
 }
